@@ -85,7 +85,6 @@
   </ItemGroup>
 
   <Target Name="ILRepack" AfterTargets="Build">
-    <!--Condition=" '$(Configuration)' == 'Release' ">-->
     <ItemGroup>
       <InputAssemblies Include="$(TargetPath)" />
       <InputAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
@@ -94,7 +93,6 @@
   </Target>
 
   <Target Name="CleanOutDir" AfterTargets="ILRepack">
-    <!--Condition=" '$(Configuration)' == 'Release' ">-->
     <ItemGroup>
       <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
     </ItemGroup>
@@ -102,8 +100,13 @@
     <Delete Files="@(DeleteAssemblies)" />
   </Target>
 
-  <Target Name="PackagePlugin" AfterTargets="CleanOutDir">
-    <!--Condition=" '$(Configuration)' == 'Release' ">-->
+  <Target Name="LivePluginLoadCopy" AfterTargets="CleanOutDir" Condition=" '$(Configuration)' == 'Debug' ">
+    <Message Text="Copying for LPL" Importance="high" />
+    <Exec Command="if not exist $(TargetDir)LPL ( mkdir $(TargetDir)LPL )" />
+    <Exec Command="copy $(TargetPath) $(TargetDir)LPL\$(TargetFileName)" />
+  </Target>
+
+  <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition=" '$(Configuration)' == 'Release' ">
     <Message Text="Starting DalamudPackager" Importance="high" />
     <DalamudPackager ProjectDir="$(ProjectDir)" OutputPath="$(OutputPath)" AssemblyName="$(AssemblyName)" VersionComponents="4" MakeZip="true" />
   </Target>

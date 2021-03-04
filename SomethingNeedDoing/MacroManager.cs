@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Hooking;
+using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Clicks;
 using System;
@@ -29,7 +30,12 @@ namespace SomethingNeedDoing
         private readonly List<ActiveMacro> RunningMacros = new List<ActiveMacro>();
         private readonly ManualResetEvent PausedWaiter = new ManualResetEvent(true);
         private readonly ManualResetEvent LoggedInWaiter = new ManualResetEvent(false);
+        private readonly ManualResetEvent DataAvailableWaiter = new ManualResetEvent(false);
         private readonly List<string> CraftingActionNames = new List<string>();
+
+        private delegate IntPtr EventFrameworkDelegate(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize);
+
+        private Hook<EventFrameworkDelegate> EventFrameworkHook;
 
         public LoopState LoopState { get; private set; } = LoopState.Waiting;
 
@@ -56,6 +62,9 @@ namespace SomethingNeedDoing
             if (plugin.Interface.ClientState.LocalPlayer != null)
                 LoggedInWaiter.Set();
 
+            EventFrameworkHook = new Hook<EventFrameworkDelegate>(plugin.Address.EventFrameworkFunctionAddress, new EventFrameworkDelegate(EventFrameworkDetour), this);
+            EventFrameworkHook.Enable();
+
             Task.Run(() => EventLoop(EventLoopTokenSource.Token));
         }
 
@@ -66,11 +75,34 @@ namespace SomethingNeedDoing
 
             EventLoopTokenSource.Cancel();
             EventLoopTokenSource.Dispose();
+            EventFrameworkHook.Dispose();
             LoggedInWaiter.Dispose();
             PausedWaiter.Dispose();
         }
 
-        private CraftingData CraftingData => Marshal.PtrToStructure<CraftingData>(plugin.Address.EventFrameworkAddress);
+        private IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize)
+        {
+            try
+            {
+                if (dataSize >= 4)
+                {
+                    var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr);
+                    if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
+                    {
+                        CraftingData = Marshal.PtrToStructure<CraftingData>(dataPtr);
+                        DataAvailableWaiter.Set();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                PluginLog.Error(ex, "Don't crash the game");
+            }
+
+            return EventFrameworkHook.Original(a1, a2, a3, a4, a5, dataPtr, dataSize);
+        }
+
+        public CraftingData CraftingData = default;
 
         public void ClientState_OnLogin(object sender, EventArgs e)
         {
@@ -231,33 +263,15 @@ namespace SomethingNeedDoing
             var actionName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
             if (IsCraftingAction(actionName))
             {
-                var retries = 0;
-                var maxRetries = 3;
-                var previousStepNumber = CraftingData.CurrentStep;
-                while (true)
-                {
-                    plugin.ChatManager.SendChatBoxMessage(step);
-
-                    if (wait.TotalSeconds > 0)
-                    {
-                        Task.Delay(wait, token).Wait(token);
-                    }
-
-                    var currentStepNumber = CraftingData.CurrentStep;
-                    if (currentStepNumber == previousStepNumber)
-                    {
-                        if (retries < maxRetries)
-                            plugin.ChatManager.PrintError($"Step did not increase, trying again ({++retries}/{maxRetries}): {step}");
-                        else
-                            throw new InvalidMacroOperationException("Step did not increase");
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
+                DataAvailableWaiter.Reset();
+                
+                plugin.ChatManager.SendChatBoxMessage(step);
+                
+                Task.Delay(wait, token).Wait(token);
                 wait = TimeSpan.Zero;
+                
+                if (!DataAvailableWaiter.WaitOne(5000))
+                    throw new InvalidMacroOperationException("Did not receive a response from the game");
             }
             else
             {
