@@ -4,9 +4,9 @@ name: Build
 
 on: 
   workflow_dispatch:
-#  push:
-#    branches:
-#    - master
+  push:
+    branches:
+    - master
 
 env:
   SOLUTION_NAME: SomethingNeedDoing
