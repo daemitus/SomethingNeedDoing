@@ -9,7 +9,7 @@ namespace SomethingNeedDoing
     public class SomethingNeedDoingPlugin : IDalamudPlugin
     {
         public string Name => "SomethingNeedDoing";
-        public string Command => "/craft";
+        public string Command => "/pcraft";
 
         internal SomethingNeedDoingConfiguration Configuration;
         internal PluginAddressResolver Address;

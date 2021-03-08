@@ -231,7 +231,7 @@ namespace SomethingNeedDoing
         }
 
         private readonly Regex RUNMACRO_COMMAND = new Regex(@"^/runmacro\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex ACTION_COMMAND = new Regex(@"^/(ac|action)\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex ACTION_COMMAND = new Regex(@"^/(ac|action)\s+(?<name>.*?)\s*(?<unsafe><unsafe>)?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex WAIT_COMMAND = new Regex(@"^/wait\s+(?<time>\d+(?:\.\d+)?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex WAITADDON_COMMAND = new Regex(@"^/waitaddon\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex REQUIRE_COMMAND = new Regex(@"^/require\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -261,16 +261,21 @@ namespace SomethingNeedDoing
                 throw new InvalidMacroOperationException("Syntax error");
 
             var actionName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
+            
+            var unsafeAction = match.Groups["unsafe"].Success;
+            if (unsafeAction)
+                step = step.Replace("<unsafe>", "").Trim();
+
             if (IsCraftingAction(actionName))
             {
                 DataAvailableWaiter.Reset();
-                
+
                 plugin.ChatManager.SendChatBoxMessage(step);
-                
+
                 Task.Delay(wait, token).Wait(token);
                 wait = TimeSpan.Zero;
-                
-                if (!DataAvailableWaiter.WaitOne(5000))
+
+                if (!unsafeAction && !DataAvailableWaiter.WaitOne(5000))
                     throw new InvalidMacroOperationException("Did not receive a response from the game");
             }
             else

@@ -17,7 +17,8 @@ It's a better way of storing and running all your different macros.
 - `/require "<name>"` - Require an effect to be present, like `medicated` or `well fed`
 - `/waitaddon "<name>"` - Wait until a certain UI addon is present. No more starting a macro before the craft has actually been started.
 - `/runmacro "<name>"` - Run a macro within a macro.
-- Intelligent skill queueing - The next crafting skill won't be sent until at minimum, a response from the game server is received. 
+- Intelligent skill queueing - The next crafting skill won't be sent until at minimum, a response from the game server is received.
+- `/ac "SkillName" <unsafe>` - Bypass intelligent skill queueing for whatever reason.
 This can be helpful in laggy situations. 
 You'll still need a `<wait.#>` modifier however. 
 The response is generally quicker than the animation.
@@ -25,4 +26,4 @@ The response is generally quicker than the animation.
 Note: Unless otherwise provided by the game or another plugin, these do not work outside the craft interface.
 
 ## In-game usage
-* Type `/craft` to pull up the GUI.
+* Type `/pcraft` to pull up the GUI.
