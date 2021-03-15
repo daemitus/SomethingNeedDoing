@@ -309,7 +309,8 @@ namespace SomethingNeedDoing
                 {
                     unsafe
                     {
-                        return ((AtkUnitBase*)addonPtr)->IsVisible;
+                        var addon = (AtkUnitBase*)addonPtr;
+                        return addon->IsVisible && addon->ULDData.LoadedState == 3;
                     }
                 }
                 return false;
