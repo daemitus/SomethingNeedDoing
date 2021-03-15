@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs", "lib\FFXIVClientStructs\FFXIVClientStructs.csproj", "{EAA36845-140C-4804-87C8-BB390634A113}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "lib\ClickLib\ClickLib\ClickLib.csproj", "{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ Global
 		{EAA36845-140C-4804-87C8-BB390634A113}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EAA36845-140C-4804-87C8-BB390634A113}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EAA36845-140C-4804-87C8-BB390634A113}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,4 @@
-﻿using Clicklib;
+﻿using ClickLib;
 using Dalamud.Hooking;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
