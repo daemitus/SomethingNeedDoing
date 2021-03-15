@@ -1,4 +1,4 @@
-﻿namespace SomethingNeedDoing.Clicks
+﻿namespace Clicklib
 {
     public enum EventType : ushort
     {

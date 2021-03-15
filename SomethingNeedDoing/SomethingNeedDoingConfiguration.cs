@@ -1,4 +1,4 @@
-﻿using Dalamud.Configuration;
+using Dalamud.Configuration;
 using Dalamud.Plugin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -125,60 +125,4 @@ namespace SomethingNeedDoing
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) => throw new NotImplementedException();
     }
-
-    /*
-    public class SomethingNeedDoingConfiguration : IPluginConfiguration
-    {
-        public int Version { get; set; } = 1;
-
-        public Node RootFolder { get; private set; } = Node.CreateFolder($"/##Root-{Guid.NewGuid()}");
-
-        public float CustomFontSize { get; set; } = 13.0f;
-
-        public IEnumerable<Node> GetAllNodes()
-        {
-            return new Node[] { RootFolder }.Concat(GetAllNodes(RootFolder.Children));
-        }
-
-        public IEnumerable<Node> GetAllNodes(IEnumerable<Node> nodes)
-        {
-            var children = nodes.SelectMany(_ => GetAllNodes(_.Children));
-            return nodes.Concat(children);
-        }
-
-        public bool TryFindParent(Node node, out Node parent)
-        {
-            foreach (var candidate in GetAllNodes())
-            {
-                if (candidate.Children.Contains(node))
-                {
-                    parent = candidate;
-                    return true;
-                }
-            }
-            parent = null;
-            return false;
-        }
-    }
-
-    public class Node
-    {
-        public string Name { get; set; }
-
-        public string Contents { get; set; } = null;
-
-        public bool IsFolder { get; set; } = false;
-
-        public List<Node> Children { get; private set; } = new List<Node>();
-
-        public Node(string name)
-        {
-            Name = name;
-        }
-
-        public static Node CreateMacro(string name) => new Node(name) { Contents = "" };
-
-        public static Node CreateFolder(string name) => new Node(name) { IsFolder = true };
-    }
-    */
 }

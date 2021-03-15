@@ -24,7 +24,7 @@ namespace SomethingNeedDoing
         [FieldOffset(0x38)] public CraftingCondition CurrentCondition;
         [FieldOffset(0x3C)] public CraftingCondition PreviousCondition;
         [FieldOffset(0x40)] public ActionResult Result;
-        [FieldOffset(0x40)] private ActionResultFlags ResultFlags;
+        [FieldOffset(0x40)] private readonly ActionResultFlags ResultFlags;
         // [FieldOffset(0x42)] public ushort Unk42;
         // [FieldOffset(0x44)] public int Unk44;
         // [FieldOffset(0x48)] public int Unk48;

@@ -1,13 +1,14 @@
-﻿using FFXIVClientStructs.FFXIV.Client.UI;
+﻿using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
-namespace SomethingNeedDoing.Clicks
+namespace Clicklib.Clicks
 {
-    public sealed class ClickGuildLeve : ClickBase
+    internal sealed class ClickGuildLeve : ClickBase
     {
-        public override string Name => "GuildLeve";
-        public override string AddonName => "GuildLeve";
+        protected override string Name => "GuildLeve";
+        protected override string AddonName => "GuildLeve";
 
-        public unsafe ClickGuildLeve(SomethingNeedDoingPlugin plugin) : base(plugin)
+        public unsafe ClickGuildLeve(DalamudPluginInterface pluginInterface) : base(pluginInterface)
         {
             AvailableClicks["guild_leve_fieldcraft"] = (addon) => SendClick(addon, EventType.CHANGE, 6, ((AddonGuildLeve*)addon)->FieldcraftButton->AtkComponentBase.OwnerNode);
             AvailableClicks["guild_leve_tradecraft"] = (addon) => SendClick(addon, EventType.CHANGE, 7, ((AddonGuildLeve*)addon)->TradecraftButton->AtkComponentBase.OwnerNode);

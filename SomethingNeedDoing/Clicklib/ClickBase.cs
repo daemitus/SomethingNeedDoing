@@ -1,33 +1,28 @@
-﻿using FFXIVClientStructs.FFXIV.Component.GUI;
+﻿using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace SomethingNeedDoing.Clicks
+namespace Clicklib
 {
-    public abstract class ClickBase
+    internal abstract class ClickBase
     {
-        public abstract string Name { get; }
-        public abstract string AddonName { get; }
+        protected abstract string Name { get; }
+        protected abstract string AddonName { get; }
 
-        public static List<ClickBase> Clickables { get; } = new List<ClickBase>();
-        public Dictionary<string, Action<IntPtr>> AvailableClicks { get; } = new Dictionary<string, Action<IntPtr>>();
+        protected DalamudPluginInterface Interface { get; private set; }
+
+        protected Dictionary<string, Action<IntPtr>> AvailableClicks { get; } = new Dictionary<string, Action<IntPtr>>();
 
         protected delegate void ReceiveEventDelegate(IntPtr addon, EventType evt, uint a3, IntPtr a4, IntPtr a5);
 
-        public SomethingNeedDoingPlugin Plugin { get; private set; }
-
-        public ClickBase(SomethingNeedDoingPlugin plugin)
+        internal ClickBase(DalamudPluginInterface pluginInterface)
         {
-            Plugin = plugin;
+            Interface = pluginInterface;
         }
 
-        public static void Register(ClickBase clickable)
-        {
-            Clickables.Add(clickable);
-        }
-
-        public bool Click(string name)
+        internal bool Click(string name)
         {
             if (AvailableClicks.TryGetValue(name, out Action<IntPtr> clickDelegate))
             {
@@ -38,29 +33,37 @@ namespace SomethingNeedDoing.Clicks
             return false;
         }
 
-        protected unsafe void SendClick(IntPtr arg1, EventType arg2, uint arg3, void* target, int arg5 = 0)
+        protected unsafe void SendClick(IntPtr arg1, EventType arg2, uint arg3, void* target) => SendClick(arg1, arg2, arg3, target, IntPtr.Zero);
+
+        protected unsafe void SendClick(IntPtr arg1, EventType arg2, uint arg3, void* target, IntPtr arg5)
         {
             var receiveEvent = GetReceiveEventDelegate((AtkEventListener*)arg1);
 
-            var mem4 = Marshal.AllocHGlobal(0x40);
-            var mem5 = Marshal.AllocHGlobal(0x40);
+            var arg4 = Marshal.AllocHGlobal(0x40);
+            for (var i = 0; i < 0x40; i++)
+                Marshal.WriteByte(arg4, i, 0);
 
-            Marshal.WriteIntPtr(mem4 + 0x8, new IntPtr(target));
-            Marshal.WriteIntPtr(mem4 + 0x10, arg1);
+            Marshal.WriteIntPtr(arg4, 0x8, new IntPtr(target));
+            Marshal.WriteIntPtr(arg4, 0x10, arg1);
 
-            Marshal.WriteInt32(mem5, arg5);
+            if (arg5 == IntPtr.Zero)
+            {
+                arg5 = Marshal.AllocHGlobal(0x40);
+                for (var i = 0; i < 0x40; i++)
+                    Marshal.WriteByte(arg5, i, 0);
+            }
 
-            receiveEvent(arg1, arg2, arg3, mem4, mem5);
+            receiveEvent(arg1, arg2, arg3, arg4, arg5);
 
-            Marshal.FreeHGlobal(mem4);
-            Marshal.FreeHGlobal(mem5);
+            Marshal.FreeHGlobal(arg4);
+            Marshal.FreeHGlobal(arg5);
         }
 
         protected IntPtr GetAddonByName(string name) => GetAddonByName(name, 1);
 
         protected IntPtr GetAddonByName(string name, int index)
         {
-            var addon = Plugin.Interface.Framework.Gui.GetUiObjectByName(name, index);
+            var addon = Interface.Framework.Gui.GetUiObjectByName(name, index);
             if (addon == IntPtr.Zero)
                 throw new InvalidClickException($"Window is not available for that click");
             return addon;

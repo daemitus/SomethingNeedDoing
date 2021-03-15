@@ -1,14 +1,15 @@
-﻿using FFXIVClientStructs.FFXIV.Client.UI;
+﻿using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using System;
 
-namespace SomethingNeedDoing.Clicks
+namespace Clicklib.Clicks
 {
-    public sealed class ClickContextIconMenu : ClickBase
+    internal sealed class ClickContextIconMenu : ClickBase
     {
-        public override string Name => "ContextIconMenu";
-        public override string AddonName => "ContextIconMenu";
+        protected override string Name => "ContextIconMenu";
+        protected override string AddonName => "ContextIconMenu";
 
-        public unsafe ClickContextIconMenu(SomethingNeedDoingPlugin plugin) : base(plugin)
+        public unsafe ClickContextIconMenu(DalamudPluginInterface pluginInterface) : base(pluginInterface)
         {
             //AvailableClicks["context_icon_menu1"] = (addon) => ContextIconMenu(addon, 1);
         }

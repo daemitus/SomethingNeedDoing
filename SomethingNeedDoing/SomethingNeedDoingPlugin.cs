@@ -56,7 +56,7 @@ namespace SomethingNeedDoing
         {
             var assembly = Assembly.GetExecutingAssembly();
             using Stream stream = assembly.GetManifestResourceStream(resourceName);
-            using BinaryReader reader = new BinaryReader(stream);
+            using BinaryReader reader = new(stream);
             return reader.ReadBytes((int)stream.Length);
         }
     }

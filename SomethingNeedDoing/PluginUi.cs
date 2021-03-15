@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface;
+using Dalamud.Interface;
 using Dalamud.Plugin;
 using ImGuiNET;
 using System;
@@ -13,9 +13,9 @@ namespace SomethingNeedDoing
     internal class PluginUI : IDisposable
     {
         private readonly SomethingNeedDoingPlugin plugin;
-        private readonly Regex INCREMENTAL_NAME = new Regex(@"(?<all> \((?<index>\d+)\))$", RegexOptions.Compiled);
-        private readonly List<AddNodeOperation> AddNode = new List<AddNodeOperation>();
-        private readonly List<RemoveNodeOperation> RemoveNode = new List<RemoveNodeOperation>();
+        private readonly Regex INCREMENTAL_NAME = new(@"(?<all> \((?<index>\d+)\))$", RegexOptions.Compiled);
+        private readonly List<AddNodeOperation> AddNode = new();
+        private readonly List<RemoveNodeOperation> RemoveNode = new();
         private INode DraggedNode = null;
         private MacroNode ActiveMacroNode = null;
         private ImFontPtr ProggyVectorFont;
@@ -474,11 +474,11 @@ namespace SomethingNeedDoing
 
         private static int rotation_start_index;
 
-        public static Vector2 Min(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X < rhs.X ? lhs.X : rhs.X, lhs.Y < rhs.Y ? lhs.Y : rhs.Y);
+        public static Vector2 Min(Vector2 lhs, Vector2 rhs) => new(lhs.X < rhs.X ? lhs.X : rhs.X, lhs.Y < rhs.Y ? lhs.Y : rhs.Y);
 
-        public static Vector2 Max(Vector2 lhs, Vector2 rhs) => new Vector2(lhs.X >= rhs.X ? lhs.X : rhs.X, lhs.Y >= rhs.Y ? lhs.Y : rhs.Y);
+        public static Vector2 Max(Vector2 lhs, Vector2 rhs) => new(lhs.X >= rhs.X ? lhs.X : rhs.X, lhs.Y >= rhs.Y ? lhs.Y : rhs.Y);
 
-        private static Vector2 Rotate(Vector2 v, float cos_a, float sin_a) => new Vector2(v.X * cos_a - v.Y * sin_a, v.X * sin_a + v.Y * cos_a);
+        private static Vector2 Rotate(Vector2 v, float cos_a, float sin_a) => new(v.X * cos_a - v.Y * sin_a, v.X * sin_a + v.Y * cos_a);
 
         public static void RotateStart()
         {
