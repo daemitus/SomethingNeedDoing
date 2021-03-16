@@ -32,6 +32,10 @@ namespace SomethingNeedDoing
 
             using var payload = new ChatPayload(message);
             var mem1 = Marshal.AllocHGlobal(400);
+
+            for (var i = 0; i < 400; i++)
+                Marshal.WriteByte(mem1 + i, 0);
+
             Marshal.StructureToPtr(payload, mem1, false);
 
             ProcessChatBox(uiModule, mem1, IntPtr.Zero, 0);
@@ -59,6 +63,10 @@ namespace SomethingNeedDoing
         {
             var stringBytes = Encoding.UTF8.GetBytes(text);
             textPtr = Marshal.AllocHGlobal(stringBytes.Length + 30);
+
+            for (var i = 0; i < stringBytes.Length; i++)
+                Marshal.WriteByte(textPtr + i, 0);
+
             Marshal.Copy(stringBytes, 0, textPtr, stringBytes.Length);
             Marshal.WriteByte(textPtr + stringBytes.Length, 0);
 
