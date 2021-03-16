@@ -416,7 +416,7 @@ namespace SomethingNeedDoing
             {
                 macro.StepIndex = -1;
             }
-            else if (countMatch.Success && int.TryParse(countMatch.Value, out var count) && macro.LoopCount > count)
+            else if (countMatch.Success && int.TryParse(countMatch.Value, out var loopMax) && macro.LoopCount < loopMax)
             {
                 macro.StepIndex = -1;
                 macro.LoopCount++;
