@@ -224,14 +224,14 @@ namespace SomethingNeedDoing
 
         private readonly Regex RUNMACRO_COMMAND = new(@"^/runmacro\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex ACTION_COMMAND = new(@"^/(ac|action)\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex WAIT_COMMAND = new(@"^/wait\s+(?<time>\d+(?:\.\d+)?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex WAIT_COMMAND = new(@"^/wait\s+(?<time>\d+(?:\.\d+)?)(?:-(?<maxtime>\d+(?:\.\d+)?))?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex WAITADDON_COMMAND = new(@"^/waitaddon\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex REQUIRE_COMMAND = new(@"^/require\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex SEND_COMMAND = new(@"^/send\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex TARGET_COMMAND = new(@"^/target\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex CLICK_COMMAND = new(@"^/click\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex LOOP_COMMAND = new(@"^/loop(?: (?<count>\d+))?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly Regex WAIT_MODIFIER = new(@"(?<modifier>\s*<wait\.(?<time>\d+(?:\.\d+)?)>\s*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private readonly Regex WAIT_MODIFIER = new(@"(?<modifier>\s*<wait\.(?<time>\d+(?:\.\d+)?)(?:-(?<maxtime>\d+(?:\.\d+)?))?>\s*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex UNSAFE_MODIFIER = new(@"(?<modifier>\s*<unsafe>\s*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private readonly Regex MAXWAIT_MODIFIER = new(@"(?<modifier>\s*<maxwait\.(?<time>\d+(?:\.\d+)?)>\s*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -283,12 +283,27 @@ namespace SomethingNeedDoing
             if (!match.Success)
                 throw new InvalidMacroOperationException("Syntax error");
 
-            var waitTime = match.Groups["time"].Value;
-            if (double.TryParse(waitTime, out double seconds))
+            var waitTime = TimeSpan.Zero;
+            var waitMatch = match.Groups["time"];
+            if (waitMatch.Success && double.TryParse(waitMatch.Value, out double seconds))
             {
-                var wait = TimeSpan.FromSeconds(seconds);
-                Task.Delay(wait, token).Wait(token);
+                waitTime = TimeSpan.FromSeconds(seconds);
+                //PluginLog.Debug($"Wait is {waitTime.TotalMilliseconds}ms");
             }
+
+            var maxWaitMatch = match.Groups["maxtime"];
+            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, out double maxSeconds))
+            {
+                var rand = new Random();
+
+                var maxWaitTime = TimeSpan.FromSeconds(maxSeconds);
+                var diff = rand.Next((int)maxWaitTime.TotalMilliseconds - (int)waitTime.TotalMilliseconds);
+
+                waitTime = TimeSpan.FromMilliseconds((int)waitTime.TotalMilliseconds + diff);
+                //PluginLog.Debug($"Wait (variable) is now {waitTime.TotalMilliseconds}ms");
+            }
+
+            Task.Delay(waitTime, token).Wait(token);
         }
 
         private void ProcessWaitAddonCommand(string step, CancellationToken token)
@@ -446,17 +461,35 @@ namespace SomethingNeedDoing
         private TimeSpan ExtractWait(ref string command)
         {
             var match = WAIT_MODIFIER.Match(command);
-            if (match.Success)
+
+            var waitTime = TimeSpan.Zero;
+
+            if (!match.Success)
+                return waitTime;
+
+            var modifier = match.Groups["modifier"].Value;
+            command = command.Replace(modifier, " ").Trim();
+
+            var waitMatch = match.Groups["time"];
+            if (waitMatch.Success && double.TryParse(waitMatch.Value, out double seconds))
             {
-                var modifier = match.Groups["modifier"].Value;
-                var waitTime = match.Groups["time"].Value;
-                command = command.Replace(modifier, " ").Trim();
-                if (double.TryParse(waitTime, out double seconds))
-                {
-                    return TimeSpan.FromSeconds(seconds);
-                }
+                waitTime = TimeSpan.FromSeconds(seconds);
+                //PluginLog.Debug($"Wait is {waitTime.TotalMilliseconds}ms");
             }
-            return TimeSpan.FromSeconds(0);
+
+            var maxWaitMatch = match.Groups["maxtime"];
+            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, out double maxSeconds))
+            {
+                var rand = new Random();
+
+                var maxWaitTime = TimeSpan.FromSeconds(maxSeconds);
+                var diff = rand.Next((int)maxWaitTime.TotalMilliseconds - (int)waitTime.TotalMilliseconds);
+
+                waitTime = TimeSpan.FromMilliseconds((int)waitTime.TotalMilliseconds + diff);
+                //PluginLog.Debug($"Wait (variable) is now {waitTime.TotalMilliseconds}ms");
+            }
+
+            return waitTime;
         }
 
         private bool ExtractUnsafe(ref string command)
