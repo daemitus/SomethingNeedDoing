@@ -1,9 +1,10 @@
-﻿using ClickLib;
+using ClickLib;
 using Dalamud.Hooking;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -285,14 +286,14 @@ namespace SomethingNeedDoing
 
             var waitTime = TimeSpan.Zero;
             var waitMatch = match.Groups["time"];
-            if (waitMatch.Success && double.TryParse(waitMatch.Value, out double seconds))
+            if (waitMatch.Success && double.TryParse(waitMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double seconds))
             {
                 waitTime = TimeSpan.FromSeconds(seconds);
                 //PluginLog.Debug($"Wait is {waitTime.TotalMilliseconds}ms");
             }
 
             var maxWaitMatch = match.Groups["maxtime"];
-            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, out double maxSeconds))
+            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double maxSeconds))
             {
                 var rand = new Random();
 
@@ -471,14 +472,14 @@ namespace SomethingNeedDoing
             command = command.Replace(modifier, " ").Trim();
 
             var waitMatch = match.Groups["time"];
-            if (waitMatch.Success && double.TryParse(waitMatch.Value, out double seconds))
+            if (waitMatch.Success && double.TryParse(waitMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double seconds))
             {
                 waitTime = TimeSpan.FromSeconds(seconds);
                 //PluginLog.Debug($"Wait is {waitTime.TotalMilliseconds}ms");
             }
 
             var maxWaitMatch = match.Groups["maxtime"];
-            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, out double maxSeconds))
+            if (maxWaitMatch.Success && double.TryParse(maxWaitMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double maxSeconds))
             {
                 var rand = new Random();
 
@@ -512,7 +513,7 @@ namespace SomethingNeedDoing
                 var modifier = match.Groups["modifier"].Value;
                 var waitTime = match.Groups["time"].Value;
                 command = command.Replace(modifier, " ").Trim();
-                if (double.TryParse(waitTime, out double seconds))
+                if (double.TryParse(waitTime, NumberStyles.Any, CultureInfo.InvariantCulture, out double seconds))
                 {
                     return TimeSpan.FromSeconds(seconds);
                 }
