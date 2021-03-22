@@ -347,11 +347,18 @@ namespace SomethingNeedDoing
             if (ImGui.ListBoxHeader("##current-macro", macroContent.Length, 5))
             {
                 var stepIndex = plugin.MacroManager.CurrentMacroStep();
-                for (int i = stepIndex; i < macroContent.Length; i++)
+                if (stepIndex == -1)
                 {
-                    var step = macroContent[i];
-                    var isCurrentStep = i == stepIndex;
-                    ImGui.Selectable(step, isCurrentStep);
+                    ImGui.Selectable("Looping", true);
+                }
+                else
+                {
+                    for (int i = stepIndex; i < macroContent.Length; i++)
+                    {
+                        var step = macroContent[i];
+                        var isCurrentStep = i == stepIndex;
+                        ImGui.Selectable(step, isCurrentStep);
+                    }
                 }
                 ImGui.ListBoxFooter();
             }

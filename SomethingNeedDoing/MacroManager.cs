@@ -206,6 +206,18 @@ namespace SomethingNeedDoing
                         break;
                 };
             }
+            catch (EffectNotPresentError ex)
+            {
+                plugin.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
+                PausedWaiter.Reset();
+                return false;
+            }
+            catch (EventFrameworkTimeoutError ex)
+            {
+                plugin.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
+                PausedWaiter.Reset();
+                return false;
+            }
             catch (InvalidMacroOperationException ex)
             {
                 plugin.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
@@ -356,7 +368,7 @@ namespace SomethingNeedDoing
                 () => plugin.Interface.ClientState.LocalPlayer.StatusEffects.Select(se => se.EffectId).ToList().Intersect(effectIDs).Any());
 
             if (!hasEffect)
-                throw new InvalidMacroOperationException("Effect not present");
+                throw new EffectNotPresentError("Effect not present");
         }
 
         private void ProcessSendCommand(string step)
@@ -475,7 +487,6 @@ namespace SomethingNeedDoing
             if (waitMatch.Success && double.TryParse(waitMatch.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double seconds))
             {
                 waitTime = TimeSpan.FromSeconds(seconds);
-                //PluginLog.Debug($"Wait is {waitTime.TotalMilliseconds}ms");
             }
 
             var maxWaitMatch = match.Groups["maxtime"];
@@ -487,7 +498,6 @@ namespace SomethingNeedDoing
                 var diff = rand.Next((int)maxWaitTime.TotalMilliseconds - (int)waitTime.TotalMilliseconds);
 
                 waitTime = TimeSpan.FromMilliseconds((int)waitTime.TotalMilliseconds + diff);
-                //PluginLog.Debug($"Wait (variable) is now {waitTime.TotalMilliseconds}ms");
             }
 
             return waitTime;
@@ -622,6 +632,4 @@ namespace SomethingNeedDoing
             }
         }
     }
-
-
 }
