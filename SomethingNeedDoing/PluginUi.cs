@@ -1,5 +1,4 @@
 using Dalamud.Interface;
-using Dalamud.Plugin;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -227,7 +226,7 @@ namespace SomethingNeedDoing
             }
         }
 
-        private unsafe void NodeDragDrop(INode node)
+        private void NodeDragDrop(INode node)
         {
             if (node != plugin.Configuration.RootFolder)
             {
@@ -329,7 +328,7 @@ namespace SomethingNeedDoing
 
             ImGui.PushItemWidth(-1);
 
-            if (ImGui.ListBoxHeader("##running-macros", plugin.MacroManager.MacroCount, 3))
+            if (ImGui.BeginListBox("##running-macros"))
             {
                 var macroStatus = plugin.MacroManager.MacroStatus;
                 for (int i = 0; i < macroStatus.Length; i++)
@@ -340,11 +339,11 @@ namespace SomethingNeedDoing
                         text += $" (step {stepIndex})";
                     ImGui.Selectable($"{text}##{Guid.NewGuid()}", i == 0);
                 }
-                ImGui.ListBoxFooter();
+                ImGui.EndListBox();
             }
 
             var macroContent = plugin.MacroManager.CurrentMacroContent();
-            if (ImGui.ListBoxHeader("##current-macro", macroContent.Length, 5))
+            if (ImGui.BeginListBox("##current-macro"))
             {
                 var stepIndex = plugin.MacroManager.CurrentMacroStep();
                 if (stepIndex == -1)
@@ -360,7 +359,7 @@ namespace SomethingNeedDoing
                         ImGui.Selectable(step, isCurrentStep);
                     }
                 }
-                ImGui.ListBoxFooter();
+                ImGui.EndListBox();
             }
             ImGui.PopItemWidth();
         }

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace SomethingNeedDoing
 {
-    [StructLayout(LayoutKind.Explicit, Size = 0x50)]
+    [StructLayout(LayoutKind.Explicit, Size = 0x64)]
     internal struct CraftingData
     {
         [FieldOffset(0x00)] public ActionCategory ActionCategory;
