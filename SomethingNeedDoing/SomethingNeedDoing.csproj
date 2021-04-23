@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Authors>daemitus</Authors>
@@ -93,7 +93,8 @@
 
   <Target Name="ILRepack" AfterTargets="Build">
     <ItemGroup>
-      <InputAssemblies Include="$(TargetDir)*.dll" />
+      <InputAssemblies Include="$(TargetPath)" />
+      <InputAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
     </ItemGroup>
     <Exec Command="$(PkgILRepack)\tools\ILRepack.exe /lib:$(DalamudLibPath) /out:$(TargetDir)$(TargetFileName) @(InputAssemblies, ' ')" />
   </Target>
