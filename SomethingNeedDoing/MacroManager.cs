@@ -72,24 +72,23 @@ namespace SomethingNeedDoing
             PausedWaiter.Dispose();
         }
 
-        private IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize)
+        private void OnEventFrameworkDetour(IntPtr dataPtr, byte dataSize)
         {
-            try
+            if (dataSize >= 4)
             {
-                if (dataSize >= 4)
+                var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr);
+                if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
                 {
-                    var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr);
-                    if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
-                    {
-                        CraftingData = Marshal.PtrToStructure<CraftingData>(dataPtr);
-                        DataAvailableWaiter.Set();
-                    }
+                    CraftingData = Marshal.PtrToStructure<CraftingData>(dataPtr);
+                    DataAvailableWaiter.Set();
                 }
             }
-            catch (Exception ex)
-            {
-                PluginLog.Error(ex, "Don't crash the game");
-            }
+        }
+
+        private IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize)
+        {
+            try { OnEventFrameworkDetour(dataPtr, dataSize); }
+            catch (Exception ex) { PluginLog.Error(ex, "Don't crash the game."); }
 
             return EventFrameworkHook.Original(a1, a2, a3, a4, a5, dataPtr, dataSize);
         }
@@ -282,7 +281,7 @@ namespace SomethingNeedDoing
                 wait = TimeSpan.Zero;
 
                 if (!unsafeAction && !DataAvailableWaiter.WaitOne(5000))
-                    throw new InvalidMacroOperationException("Did not receive a response from the game");
+                    throw new EventFrameworkTimeoutError("Did not receive a response from the game");
             }
             else
             {

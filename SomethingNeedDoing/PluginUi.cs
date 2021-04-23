@@ -348,13 +348,9 @@ namespace SomethingNeedDoing
             ImGui.PushItemWidth(-1);
 
             var style = ImGui.GetStyle();
-            var height = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 3 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 2;
-            if (ImGui.BeginListBox("##running-macros", new Vector2(-1, height)))
+            var runningHeight = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 3 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 2;
+            if (ImGui.BeginListBox("##running-macros", new Vector2(-1, runningHeight)))
             {
-                ImGui.Selectable($"{111}##{Guid.NewGuid()}");
-                ImGui.Selectable($"{222}##{Guid.NewGuid()}");
-                ImGui.Selectable($"{333}##{Guid.NewGuid()}");
-
                 var macroStatus = plugin.MacroManager.MacroStatus;
                 for (int i = 0; i < macroStatus.Length; i++)
                 {
@@ -367,8 +363,9 @@ namespace SomethingNeedDoing
                 ImGui.EndListBox();
             }
 
+            var contentHeight = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 5 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 4;
             var macroContent = plugin.MacroManager.CurrentMacroContent();
-            if (ImGui.BeginListBox("##current-macro"))
+            if (ImGui.BeginListBox("##current-macro", new Vector2(-1, contentHeight)))
             {
                 var stepIndex = plugin.MacroManager.CurrentMacroStep();
                 if (stepIndex == -1)
