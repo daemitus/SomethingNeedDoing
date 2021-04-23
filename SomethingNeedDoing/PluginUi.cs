@@ -17,7 +17,8 @@ namespace SomethingNeedDoing
         private readonly List<RemoveNodeOperation> RemoveNode = new();
         private INode DraggedNode = null;
         private MacroNode ActiveMacroNode = null;
-        private ImFontPtr ProggyVectorFont;
+        private ImFontPtr MonoFont;
+        private ImFontPtr MonoFontJP;
 
         private struct AddNodeOperation
         {
@@ -60,10 +61,28 @@ namespace SomethingNeedDoing
 
         public void UiBuilder_OnBuildFonts()
         {
-            var fontData = SomethingNeedDoingPlugin.ReadResource("SomethingNeedDoing.Fonts.ProggyVectorRegular.ttf");
+            var fontData = plugin.ReadResourceFile("ProggyVectorRegular.ttf");
             var fontPtr = Marshal.AllocHGlobal(fontData.Length);
             Marshal.Copy(fontData, 0, fontPtr, fontData.Length);
-            ProggyVectorFont = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(fontPtr, fontData.Length, plugin.Configuration.CustomFontSize);
+
+            var fontDataJP = plugin.ReadResourceFile("NotoSansMonoCJKjp-Regular.otf");
+            var fontPtrJP = Marshal.AllocHGlobal(fontDataJP.Length);
+            Marshal.Copy(fontDataJP, 0, fontPtrJP, fontDataJP.Length);
+
+            unsafe
+            {
+                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
+                fontConfig.MergeMode = true;
+                fontConfig.PixelSnapH = true;
+
+                MonoFont = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(fontPtr, fontData.Length, plugin.Configuration.CustomFontSize, fontConfig);
+
+                // Interface.GlyphRangesJapanese is internal, should be public
+                // Once it is, our file can be deleted
+                var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
+                MonoFontJP = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(fontPtrJP, fontDataJP.Length, plugin.Configuration.CustomFontSize, fontConfig, japaneseRangeHandle.AddrOfPinnedObject());
+                japaneseRangeHandle.Free();
+            }
         }
 
         public void UiBuilder_OnOpenConfigUi(object sender, EventArgs args) => IsImguiSetupOpen = true;
@@ -403,7 +422,8 @@ namespace SomethingNeedDoing
             }
 
             ImGui.PushItemWidth(-1);
-            ImGui.PushFont(ProggyVectorFont);
+            ImGui.PushFont(MonoFont);
+            ImGui.PushFont(MonoFontJP);
 
             var contents = node.Contents;
             if (ImGui.InputTextMultiline($"##{node.Name}-editor", ref contents, 100_000, new Vector2(-1, -1)))
@@ -412,6 +432,7 @@ namespace SomethingNeedDoing
                 plugin.SaveConfiguration();
             }
 
+            ImGui.PopFont();
             ImGui.PopFont();
             ImGui.PopItemWidth();
         }

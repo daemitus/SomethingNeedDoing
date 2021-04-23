@@ -45,6 +45,13 @@ namespace SomethingNeedDoing
             PluginUi.Dispose();
         }
 
+        private string _AssemblyLocation;
+        public string AssemblyLocation
+        {
+            get { return _AssemblyLocation ??= Assembly.GetExecutingAssembly().Location; }
+            set { _AssemblyLocation = value; }
+        }
+
         internal void SaveConfiguration() => Interface.SavePluginConfig(Configuration);
 
         private void OnChatCommand(string command, string arguments)
@@ -52,7 +59,14 @@ namespace SomethingNeedDoing
             PluginUi.Open();
         }
 
-        internal static byte[] ReadResource(string resourceName)
+        internal byte[] ReadResourceFile(params string[] filePathSegments)
+        {
+            var assemblyFolder = Path.GetDirectoryName(AssemblyLocation);
+            var resourceFilePath = Path.Combine(assemblyFolder, Path.Combine(filePathSegments));
+            return File.ReadAllBytes(resourceFilePath);
+        }
+
+        internal byte[] ReadEmbeddedResource(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();
             using Stream stream = assembly.GetManifestResourceStream(resourceName);

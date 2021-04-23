@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Authors>daemitus</Authors>
     <Company>-</Company>
-    <Version>1.0.0.9</Version>
+    <Version>1.0.0.10</Version>
     <Description></Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/daemitus/SomethingNeedDoing</PackageProjectUrl>
@@ -44,14 +44,18 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Fonts\ProggyVectorRegular.ttf" />
-    <EmbeddedResource Include="Fonts\ProggyVectorRegular.ttf" />
-  </ItemGroup>
-
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Fonts\NotoSansMonoCJKjp-Regular.otf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Fonts\ProggyVectorRegular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DalamudPackager" Version="1.2.1" />
@@ -87,24 +91,31 @@
 
   <Target Name="ILRepack" AfterTargets="Build">
     <ItemGroup>
-      <InputAssemblies Include="$(TargetPath)" />
-      <InputAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
+      <InputAssemblies Include="$(TargetDir)*.dll" />
     </ItemGroup>
     <Exec Command="$(PkgILRepack)\tools\ILRepack.exe /lib:$(DalamudLibPath) /out:$(TargetDir)$(TargetFileName) @(InputAssemblies, ' ')" />
   </Target>
 
-  <Target Name="CleanOutDir" AfterTargets="ILRepack">
+  <Target Name="MoveFonts" AfterTargets="ILRepack">
     <ItemGroup>
+      <FontFiles Include="$(TargetDir)Fonts\*" />
+    </ItemGroup>
+    <Move SourceFiles="@(FontFiles)" DestinationFolder="$(TargetDir)" />
+    <Exec Command="rmdir $(TargetDir)Fonts" />
+  </Target>
+
+  <Target Name="CleanOutDir" AfterTargets="MoveFonts">
+    <ItemGroup>
+      <FontFiles Include="$(TargetDir)Fonts\*" />
       <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
     </ItemGroup>
     <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
-    <!--<Delete Files="@(DeleteAssemblies)" />-->
+    <Delete Files="@(DeleteAssemblies)" />
   </Target>
 
   <Target Name="LivePluginLoadCopy" AfterTargets="CleanOutDir" Condition=" '$(Configuration)' == 'Debug' ">
     <Message Text="Copying for LPL" Importance="high" />
-    <Exec Command="if not exist $(TargetDir)LPL ( mkdir $(TargetDir)LPL )" />
-    <Exec Command="copy $(TargetPath) $(TargetDir)LPL\$(TargetFileName)" />
+    <Exec Command="xcopy /Y /I $(TargetDir) $(TargetDir)LPL" />
   </Target>
 
   <Target Name="PackagePlugin" AfterTargets="CleanOutDir" Condition=" '$(Configuration)' == 'Release' ">
