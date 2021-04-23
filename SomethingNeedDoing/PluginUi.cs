@@ -419,7 +419,7 @@ namespace SomethingNeedDoing
             }
 
             ImGui.SameLine();
-            if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import"))
+            if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import from clipboard"))
             {
                 var text = ImGui.GetClipboardText();
 
