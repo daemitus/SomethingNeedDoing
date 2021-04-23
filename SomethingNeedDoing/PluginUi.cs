@@ -347,8 +347,14 @@ namespace SomethingNeedDoing
 
             ImGui.PushItemWidth(-1);
 
-            if (ImGui.BeginListBox("##running-macros"))
+            var style = ImGui.GetStyle();
+            var height = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 3 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 2;
+            if (ImGui.BeginListBox("##running-macros", new Vector2(-1, height)))
             {
+                ImGui.Selectable($"{111}##{Guid.NewGuid()}");
+                ImGui.Selectable($"{222}##{Guid.NewGuid()}");
+                ImGui.Selectable($"{333}##{Guid.NewGuid()}");
+
                 var macroStatus = plugin.MacroManager.MacroStatus;
                 for (int i = 0; i < macroStatus.Length; i++)
                 {
