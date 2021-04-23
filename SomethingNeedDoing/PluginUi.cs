@@ -419,6 +419,24 @@ namespace SomethingNeedDoing
             }
 
             ImGui.SameLine();
+            if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import"))
+            {
+                var text = ImGui.GetClipboardText();
+
+                // Replace \r with \r\n, usually from copy/pasting from the in-game macro window
+                var rex = new Regex("\r(?!\n)", RegexOptions.Compiled);
+                var matches = from Match match in rex.Matches(text)
+                              let index = match.Index
+                              orderby index descending
+                              select index;
+                foreach (var index in matches)
+                    text = text.Remove(index, 1).Insert(index, "\r\n");
+
+                node.Contents = text;
+                plugin.SaveConfiguration();
+            }
+
+            ImGui.SameLine();
             if (ImGuiEx.IconButton(FontAwesomeIcon.TimesCircle, "Close"))
             {
                 ActiveMacroNode = null;
