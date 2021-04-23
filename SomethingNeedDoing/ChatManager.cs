@@ -1,7 +1,9 @@
+using Dalamud.Game.Internal;
 using Dalamud.Plugin;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 
 namespace SomethingNeedDoing
 {
@@ -10,38 +12,53 @@ namespace SomethingNeedDoing
         private readonly SomethingNeedDoingPlugin plugin;
         private readonly FrameworkGetUiModuleDelegate FrameworkGetUIModule;
         private readonly ProcessChatBoxDelegate ProcessChatBox;
+        private readonly Channel<string> ChatBoxMessages = Channel.CreateUnbounded<string>();
 
         public ChatManager(SomethingNeedDoingPlugin plugin)
         {
             this.plugin = plugin;
             FrameworkGetUIModule = Marshal.GetDelegateForFunctionPointer<FrameworkGetUiModuleDelegate>(plugin.Address.FrameworkGetUIModuleAddress);
             ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(plugin.Address.ProcessChatBoxAddress);
+
+            plugin.Interface.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            plugin.Interface.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
+            ChatBoxMessages.Writer.Complete();
+        }
 
         public void PrintMessage(string message) => plugin.Interface.Framework.Gui.Chat.Print(message);
 
         public void PrintError(string message) => plugin.Interface.Framework.Gui.Chat.PrintError(message);
 
-        public void SendChatBoxMessage(string message)
+        private void Framework_OnUpdateEvent(Framework framework)
         {
-            var uiModule = FrameworkGetUIModule(Marshal.ReadIntPtr(plugin.Address.FrameworkPointerAddress));
+            if (ChatBoxMessages.Reader.TryRead(out var message))
+                SendChatBoxMessageInternal(message);
+        }
 
-            if (uiModule == IntPtr.Zero)
-                throw new ApplicationException("uiModule was null");
+        public async void SendChatBoxMessage(string message)
+        {
+            await ChatBoxMessages.Writer.WriteAsync(message);
+        }
 
-            using var payload = new ChatPayload(message);
-            var mem1 = Marshal.AllocHGlobal(400);
+        private void SendChatBoxMessageInternal(string message)
+        {
+            var framework = Marshal.ReadIntPtr(plugin.Address.FrameworkPointerAddress);
+            var uiModule = FrameworkGetUIModule(framework);
 
-            for (var i = 0; i < 400; i++)
-                Marshal.WriteByte(mem1 + i, 0);
+            var payloadSize = Marshal.SizeOf<ChatPayload>();
+            var payloadPtr = Marshal.AllocHGlobal(payloadSize);
+            var payload = new ChatPayload(message);
 
-            Marshal.StructureToPtr(payload, mem1, false);
+            Marshal.StructureToPtr(payload, payloadPtr, false);
 
-            ProcessChatBox(uiModule, mem1, IntPtr.Zero, 0);
+            ProcessChatBox(uiModule, payloadPtr, IntPtr.Zero, 0);
 
-            Marshal.FreeHGlobal(mem1);
+            Marshal.FreeHGlobal(payloadPtr);
+            payload.Dispose();
         }
     }
 
@@ -62,16 +79,13 @@ namespace SomethingNeedDoing
 
         internal ChatPayload(string text)
         {
-            var stringBytes = Encoding.UTF8.GetBytes(text);
-            textPtr = Marshal.AllocHGlobal(stringBytes.Length + 30);
+            var textBytes = Encoding.UTF8.GetBytes(text);
+            textPtr = Marshal.AllocHGlobal(textBytes.Length + 1);
 
-            for (var i = 0; i < stringBytes.Length; i++)
-                Marshal.WriteByte(textPtr + i, 0);
+            Marshal.Copy(textBytes, 0, textPtr, textBytes.Length);
+            Marshal.WriteByte(textPtr + textBytes.Length, 0);
 
-            Marshal.Copy(stringBytes, 0, textPtr, stringBytes.Length);
-            Marshal.WriteByte(textPtr + stringBytes.Length, 0);
-
-            textLen = (ulong)(stringBytes.Length + 1);
+            textLen = (ulong)(textBytes.Length + 1);
             unk1 = 64;
             unk2 = 0;
         }
