@@ -348,7 +348,7 @@ namespace SomethingNeedDoing
             ImGui.PushItemWidth(-1);
 
             var style = ImGui.GetStyle();
-            var runningHeight = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 3 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 2;
+            var runningHeight = (ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 3) + (style.FramePadding.Y * 2) + (style.ItemSpacing.Y * 2);
             if (ImGui.BeginListBox("##running-macros", new Vector2(-1, runningHeight)))
             {
                 var macroStatus = plugin.MacroManager.MacroStatus;
@@ -363,7 +363,7 @@ namespace SomethingNeedDoing
                 ImGui.EndListBox();
             }
 
-            var contentHeight = ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 5 + style.FramePadding.Y * 2 + style.ItemSpacing.Y * 4;
+            var contentHeight = (ImGui.CalcTextSize("CalcTextSize").Y * ImGuiHelpers.GlobalScale * 5) + (style.FramePadding.Y * 2) + (style.ItemSpacing.Y * 4);
             var macroContent = plugin.MacroManager.CurrentMacroContent();
             if (ImGui.BeginListBox("##current-macro", new Vector2(-1, contentHeight)))
             {
@@ -526,7 +526,7 @@ namespace SomethingNeedDoing
 
         public static Vector2 Max(Vector2 lhs, Vector2 rhs) => new(lhs.X >= rhs.X ? lhs.X : rhs.X, lhs.Y >= rhs.Y ? lhs.Y : rhs.Y);
 
-        private static Vector2 Rotate(Vector2 v, float cos_a, float sin_a) => new(v.X * cos_a - v.Y * sin_a, v.X * sin_a + v.Y * cos_a);
+        private static Vector2 Rotate(Vector2 v, float cos_a, float sin_a) => new((v.X * cos_a) - (v.Y * sin_a), (v.X * sin_a) + (v.Y * cos_a));
 
         public static void RotateStart()
         {
