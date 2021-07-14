@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WindowsInput;
+using WindowsInput.Events;
 using WindowsInput.Native;
 
 namespace SomethingNeedDoing
@@ -54,7 +55,7 @@ namespace SomethingNeedDoing
             if (plugin.Interface.ClientState.LocalPlayer != null)
                 LoggedInWaiter.Set();
 
-            EventFrameworkHook = new Hook<EventFrameworkDelegate>(plugin.Address.EventFrameworkFunctionAddress, new EventFrameworkDelegate(EventFrameworkDetour), this);
+            EventFrameworkHook = new Hook<EventFrameworkDelegate>(plugin.Address.EventFrameworkFunctionAddress, EventFrameworkDetour);
             EventFrameworkHook.Enable();
 
             Task.Run(() => EventLoop(EventLoopTokenSource.Token));
@@ -329,7 +330,7 @@ namespace SomethingNeedDoing
             var addonPtr = IntPtr.Zero;
             var addonName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' });
 
-            var isVisible = LinearWaitFor(500, Convert.ToInt32(maxwait.TotalMilliseconds), token, () =>
+            var isVisible = LinearWaitFor(500, Convert.ToInt32(maxwait.TotalMilliseconds), () =>
             {
                 addonPtr = plugin.Interface.Framework.Gui.GetUiObjectByName(addonName, 1);
                 if (addonPtr != IntPtr.Zero)
@@ -337,11 +338,11 @@ namespace SomethingNeedDoing
                     unsafe
                     {
                         var addon = (AtkUnitBase*)addonPtr;
-                        return addon->IsVisible && addon->ULDData.LoadedState == 3;
+                        return addon->IsVisible && addon->UldManager.LoadedState == 3;
                     }
                 }
                 return false;
-            });
+            }, token);
 
             if (addonPtr == IntPtr.Zero)
                 throw new InvalidMacroOperationException("Could not find Addon");
@@ -363,8 +364,9 @@ namespace SomethingNeedDoing
             var sheet = plugin.Interface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>();
             var effectIDs = sheet.Where(row => row.Name.RawString.ToLower() == effectName).Select(row => (short)row.RowId).ToList();
 
-            var hasEffect = LinearWaitFor(250, Convert.ToInt32(maxwait.TotalMilliseconds), token,
-                () => plugin.Interface.ClientState.LocalPlayer.StatusEffects.Select(se => se.EffectId).ToList().Intersect(effectIDs).Any());
+            var hasEffect = LinearWaitFor(250, Convert.ToInt32(maxwait.TotalMilliseconds),
+                () => plugin.Interface.ClientState.LocalPlayer.StatusEffects.Select(se => se.EffectId).ToList().Intersect(effectIDs).Any(),
+                token);
 
             if (!hasEffect)
                 throw new EffectNotPresentError("Effect not present");
@@ -378,15 +380,14 @@ namespace SomethingNeedDoing
 
             var vkName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
 
-            var InputSimulator = new InputSimulator();
-            var vkCode = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), vkName, true);
-            if (!Enum.IsDefined(typeof(VirtualKeyCode), vkCode))
+            var vkCode = (KeyCode)Enum.Parse(typeof(KeyCode), vkName, true);
+            if (!Enum.IsDefined(typeof(KeyCode), vkCode))
             {
                 throw new InvalidMacroOperationException($"Invalid virtual key");
             }
             else
             {
-                InputSimulator.Keyboard.KeyPress(vkCode);
+                Simulate.Events().Click(vkCode).Invoke();
             }
         }
 
@@ -400,7 +401,7 @@ namespace SomethingNeedDoing
             Dalamud.Game.ClientState.Actors.Types.Actor npc = null;
             try
             {
-                npc = plugin.Interface.ClientState.Actors.Where(actor => actor.Name.ToLower() == actorName).First();
+                npc = plugin.Interface.ClientState.Actors.Where(actor => actor.Name.TextValue.ToLower() == actorName).First();
             }
             catch (InvalidOperationException)
             {
@@ -454,7 +455,7 @@ namespace SomethingNeedDoing
             }
         }
 
-        private bool LinearWaitFor(int waitInterval, int maxWait, CancellationToken token, Func<bool> action)
+        private bool LinearWaitFor(int waitInterval, int maxWait, Func<bool> action, CancellationToken token)
         {
             var totalWait = 0;
             while (true)
@@ -588,7 +589,7 @@ namespace SomethingNeedDoing
         public string[] CurrentMacroContent()
         {
             if (RunningMacros.Count == 0)
-                return new string[0];
+                return Array.Empty<string>();
             return (string[])RunningMacros.First().Steps.Clone();
         }
 

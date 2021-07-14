@@ -2,5 +2,6 @@
   "Author": "daemitus",
   "Name": "SomethingNeedDoing",
   "Description": "A hard-working peon that crafts what you tell him to. Work work.",
-  "RepoUrl": "https://github.com/daemitus/SomethingNeedDoing"
+  "RepoUrl": "https://github.com/daemitus/SomethingNeedDoing",
+  "DalamudApiLevel": 4
 }
