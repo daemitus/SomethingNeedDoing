@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30611.23
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31512.422
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SomethingNeedDoing", "SomethingNeedDoing\SomethingNeedDoing.csproj", "{17BDD103-8214-41EB-A241-76BA34499B9B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SomethingNeedDoing", "SomethingNeedDoing\SomethingNeedDoing.csproj", "{7A28CFC7-5A98-41AD-8129-D835AEE9645A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Actions", "Github Actions", "{635B3EB7-FE24-4F29-B35E-00CAC60CD76E}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,28 +16,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs", "lib\FFXIVClientStructs\FFXIVClientStructs.csproj", "{EAA36845-140C-4804-87C8-BB390634A113}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "lib\ClickLib\ClickLib\ClickLib.csproj", "{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs", "lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj", "{5A15C40C-A15F-4E92-88E7-8F0323AAB284}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs.Common", "lib\FFXIVClientStructs\FFXIVClientStructs.Common\FFXIVClientStructs.Common.csproj", "{44CDE469-FAEE-409E-850E-382408DF2501}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs.Generators", "lib\FFXIVClientStructs\FFXIVClientStructs.Generators\FFXIVClientStructs.Generators.csproj", "{95BA2E05-5C5D-4C36-9723-2F5883273D65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{17BDD103-8214-41EB-A241-76BA34499B9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{17BDD103-8214-41EB-A241-76BA34499B9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{17BDD103-8214-41EB-A241-76BA34499B9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{17BDD103-8214-41EB-A241-76BA34499B9B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EAA36845-140C-4804-87C8-BB390634A113}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EAA36845-140C-4804-87C8-BB390634A113}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EAA36845-140C-4804-87C8-BB390634A113}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EAA36845-140C-4804-87C8-BB390634A113}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Debug|x64.ActiveCfg = Debug|x64
+		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Debug|x64.Build.0 = Debug|x64
+		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Release|x64.ActiveCfg = Release|x64
+		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Release|x64.Build.0 = Release|x64
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Debug|x64.Build.0 = Debug|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|x64.ActiveCfg = Release|Any CPU
+		{1F103FE7-B3FB-4D69-86C9-7E040977CAF9}.Release|x64.Build.0 = Release|Any CPU
+		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|x64.Build.0 = Debug|Any CPU
+		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|x64.ActiveCfg = Release|Any CPU
+		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|x64.Build.0 = Release|Any CPU
+		{44CDE469-FAEE-409E-850E-382408DF2501}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{44CDE469-FAEE-409E-850E-382408DF2501}.Debug|x64.Build.0 = Debug|Any CPU
+		{44CDE469-FAEE-409E-850E-382408DF2501}.Release|x64.ActiveCfg = Release|Any CPU
+		{44CDE469-FAEE-409E-850E-382408DF2501}.Release|x64.Build.0 = Release|Any CPU
+		{95BA2E05-5C5D-4C36-9723-2F5883273D65}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{95BA2E05-5C5D-4C36-9723-2F5883273D65}.Debug|x64.Build.0 = Debug|Any CPU
+		{95BA2E05-5C5D-4C36-9723-2F5883273D65}.Release|x64.ActiveCfg = Release|Any CPU
+		{95BA2E05-5C5D-4C36-9723-2F5883273D65}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

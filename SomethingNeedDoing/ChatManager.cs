@@ -1,4 +1,4 @@
-using Dalamud.Game.Internal;
+using Dalamud.Game;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -19,18 +19,18 @@ namespace SomethingNeedDoing
             FrameworkGetUIModule = Marshal.GetDelegateForFunctionPointer<FrameworkGetUiModuleDelegate>(plugin.Address.FrameworkGetUIModuleAddress);
             ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(plugin.Address.ProcessChatBoxAddress);
 
-            plugin.Interface.Framework.OnUpdateEvent += Framework_OnUpdateEvent;
+            plugin.Framework.Update += Framework_OnUpdateEvent;
         }
 
         public void Dispose()
         {
-            plugin.Interface.Framework.OnUpdateEvent -= Framework_OnUpdateEvent;
+            plugin.Framework.Update -= Framework_OnUpdateEvent;
             ChatBoxMessages.Writer.Complete();
         }
 
-        public void PrintMessage(string message) => plugin.Interface.Framework.Gui.Chat.Print(message);
+        public void PrintMessage(string message) => plugin.ChatGui.Print(message);
 
-        public void PrintError(string message) => plugin.Interface.Framework.Gui.Chat.PrintError(message);
+        public void PrintError(string message) => plugin.ChatGui.PrintError(message);
 
         private void Framework_OnUpdateEvent(Framework framework)
         {

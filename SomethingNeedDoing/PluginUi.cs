@@ -9,6 +9,8 @@ using System.Text.RegularExpressions;
 
 namespace SomethingNeedDoing
 {
+    // TODO timer ui
+
     internal class PluginUI : IDisposable
     {
         private readonly SomethingNeedDoingPlugin plugin;
@@ -37,17 +39,17 @@ namespace SomethingNeedDoing
         {
             this.plugin = plugin;
 
-            plugin.Interface.UiBuilder.OnBuildFonts += UiBuilder_OnBuildFonts;
-            plugin.Interface.UiBuilder.OnOpenConfigUi += UiBuilder_OnOpenConfigUi;
-            plugin.Interface.UiBuilder.OnBuildUi += UiBuilder_OnBuildUi;
+            plugin.Interface.UiBuilder.BuildFonts += UiBuilder_OnBuildFonts;
+            plugin.Interface.UiBuilder.OpenConfigUi += UiBuilder_OnOpenConfigUi;
+            plugin.Interface.UiBuilder.Draw += UiBuilder_OnBuildUi;
             plugin.Interface.UiBuilder.RebuildFonts();
         }
 
         public void Dispose()
         {
-            plugin.Interface.UiBuilder.OnBuildFonts -= UiBuilder_OnBuildFonts;
-            plugin.Interface.UiBuilder.OnOpenConfigUi -= UiBuilder_OnOpenConfigUi;
-            plugin.Interface.UiBuilder.OnBuildUi -= UiBuilder_OnBuildUi;
+            plugin.Interface.UiBuilder.BuildFonts -= UiBuilder_OnBuildFonts;
+            plugin.Interface.UiBuilder.OpenConfigUi -= UiBuilder_OnOpenConfigUi;
+            plugin.Interface.UiBuilder.Draw -= UiBuilder_OnBuildUi;
             plugin.Interface.UiBuilder.RebuildFonts();
         }
 
@@ -85,7 +87,7 @@ namespace SomethingNeedDoing
             }
         }
 
-        public void UiBuilder_OnOpenConfigUi(object sender, EventArgs args) => IsImguiSetupOpen = true;
+        public void UiBuilder_OnOpenConfigUi() => IsImguiSetupOpen = true;
 
         public void UiBuilder_OnBuildUi()
         {

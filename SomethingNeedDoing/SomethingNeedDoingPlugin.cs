@@ -1,4 +1,10 @@
-﻿using Dalamud.Game.Command;
+using Dalamud.Data;
+using Dalamud.Game;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.Command;
+using Dalamud.Game.Gui;
+using Dalamud.IoC;
 using Dalamud.Plugin;
 using System;
 using System.IO;
@@ -6,32 +12,61 @@ using System.Reflection;
 
 namespace SomethingNeedDoing
 {
-    public class SomethingNeedDoingPlugin : IDalamudPlugin
+    public sealed class SomethingNeedDoingPlugin : IDalamudPlugin
     {
-        public string Name => "SomethingNeedDoing";
+        public string Name => "Something Need Doing";
         public string Command => "/pcraft";
 
         internal SomethingNeedDoingConfiguration Configuration;
         internal PluginAddressResolver Address;
-        internal DalamudPluginInterface Interface;
         internal ChatManager ChatManager;
         internal MacroManager MacroManager;
 
-        private PluginUI PluginUi;
+        private readonly PluginUI PluginUi;
 
-        public void Initialize(DalamudPluginInterface pluginInterface)
+        internal DalamudPluginInterface Interface { get; private set; }
+        internal ChatGui ChatGui { get; private set; }
+        internal ClientState ClientState { get; private set; }
+        internal CommandManager CommandManager { get; private set; }
+        internal DataManager DataManager { get; private set; }
+        internal Framework Framework { get; private set; }
+        internal GameGui GameGui { get; private set; }
+        internal ObjectTable ObjectTable { get; private set; }
+        internal TargetManager TargetManager { get; private set; }
+
+        public SomethingNeedDoingPlugin(
+            [RequiredVersion("1.0")] DalamudPluginInterface pluginInterface,
+            [RequiredVersion("1.0")] ChatGui chatGui,
+            [RequiredVersion("1.0")] ClientState clientState,
+            [RequiredVersion("1.0")] CommandManager commandManager,
+            [RequiredVersion("1.0")] DataManager dataManager,
+            [RequiredVersion("1.0")] Framework framework,
+            [RequiredVersion("1.0")] GameGui gameGui,
+            [RequiredVersion("1.0")] ObjectTable objectTable,
+            [RequiredVersion("1.0")] TargetManager targetManager)
         {
             Interface = pluginInterface ?? throw new ArgumentNullException(nameof(pluginInterface), "DalamudPluginInterface cannot be null");
+
+            ChatGui = chatGui;
+            ClientState = clientState;
+            CommandManager = commandManager;
+            DataManager = dataManager;
+            Framework = framework;
+            GameGui = gameGui;
+            ObjectTable = objectTable;
+            TargetManager = targetManager;
+
             Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface, Name);
 
-            Interface.CommandManager.AddHandler(Command, new CommandInfo(OnChatCommand)
+            CommandManager.AddHandler(Command, new CommandInfo(OnChatCommand)
             {
                 HelpMessage = "Open a window to edit various settings.",
                 ShowInHelp = true
             });
 
             Address = new PluginAddressResolver();
-            Address.Setup(pluginInterface.TargetModuleScanner);
+            Address.Setup();
+
             ChatManager = new ChatManager(this);
             MacroManager = new MacroManager(this);
             PluginUi = new PluginUI(this);
@@ -39,7 +74,7 @@ namespace SomethingNeedDoing
 
         public void Dispose()
         {
-            Interface.CommandManager.RemoveHandler(Command);
+            CommandManager.RemoveHandler(Command);
             ChatManager.Dispose();
             MacroManager.Dispose();
             PluginUi.Dispose();

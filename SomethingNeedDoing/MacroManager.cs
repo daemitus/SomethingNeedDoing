@@ -1,6 +1,7 @@
 using ClickLib;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
-using Dalamud.Plugin;
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WindowsInput;
-using WindowsInput.Native;
+using WindowsInput.Events;
 
 namespace SomethingNeedDoing
 {
@@ -44,17 +45,17 @@ namespace SomethingNeedDoing
         public MacroManager(SomethingNeedDoingPlugin plugin)
         {
             this.plugin = plugin;
-            this.plugin.Interface.ClientState.OnLogin += ClientState_OnLogin;
-            this.plugin.Interface.ClientState.OnLogout += ClientState_OnLogout;
+            this.plugin.ClientState.Login += ClientState_OnLogin;
+            this.plugin.ClientState.Logout += ClientState_OnLogout;
 
-            Click.Initialize(plugin.Interface);
+            Click.Initialize();
 
             PopulateCraftingActionNames();
 
-            if (plugin.Interface.ClientState.LocalPlayer != null)
+            if (plugin.ClientState.LocalPlayer != null)
                 LoggedInWaiter.Set();
 
-            EventFrameworkHook = new Hook<EventFrameworkDelegate>(plugin.Address.EventFrameworkFunctionAddress, new EventFrameworkDelegate(EventFrameworkDetour), this);
+            EventFrameworkHook = new Hook<EventFrameworkDelegate>(plugin.Address.EventFrameworkFunctionAddress, EventFrameworkDetour);
             EventFrameworkHook.Enable();
 
             Task.Run(() => EventLoop(EventLoopTokenSource.Token));
@@ -62,8 +63,8 @@ namespace SomethingNeedDoing
 
         public void Dispose()
         {
-            plugin.Interface.ClientState.OnLogin -= ClientState_OnLogin;
-            plugin.Interface.ClientState.OnLogout -= ClientState_OnLogout;
+            plugin.ClientState.Login -= ClientState_OnLogin;
+            plugin.ClientState.Logout -= ClientState_OnLogout;
 
             EventLoopTokenSource.Cancel();
             EventLoopTokenSource.Dispose();
@@ -329,19 +330,19 @@ namespace SomethingNeedDoing
             var addonPtr = IntPtr.Zero;
             var addonName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' });
 
-            var isVisible = LinearWaitFor(500, Convert.ToInt32(maxwait.TotalMilliseconds), token, () =>
+            var isVisible = LinearWaitFor(500, Convert.ToInt32(maxwait.TotalMilliseconds), () =>
             {
-                addonPtr = plugin.Interface.Framework.Gui.GetUiObjectByName(addonName, 1);
+                addonPtr = plugin.GameGui.GetAddonByName(addonName, 1);
                 if (addonPtr != IntPtr.Zero)
                 {
                     unsafe
                     {
                         var addon = (AtkUnitBase*)addonPtr;
-                        return addon->IsVisible && addon->ULDData.LoadedState == 3;
+                        return addon->IsVisible && addon->UldManager.LoadedState == 3;
                     }
                 }
                 return false;
-            });
+            }, token);
 
             if (addonPtr == IntPtr.Zero)
                 throw new InvalidMacroOperationException("Could not find Addon");
@@ -360,11 +361,12 @@ namespace SomethingNeedDoing
 
             var effectName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
 
-            var sheet = plugin.Interface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>();
-            var effectIDs = sheet.Where(row => row.Name.RawString.ToLower() == effectName).Select(row => (short)row.RowId).ToList();
+            var sheet = plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>();
+            var effectIDs = sheet.Where(row => row.Name.RawString.ToLower() == effectName).Select(row => row.RowId).ToList();
 
-            var hasEffect = LinearWaitFor(250, Convert.ToInt32(maxwait.TotalMilliseconds), token,
-                () => plugin.Interface.ClientState.LocalPlayer.StatusEffects.Select(se => se.EffectId).ToList().Intersect(effectIDs).Any());
+            var hasEffect = LinearWaitFor(250, Convert.ToInt32(maxwait.TotalMilliseconds),
+                () => plugin.ClientState.LocalPlayer.StatusList.Select(se => se.StatusId).ToList().Intersect(effectIDs).Any(),
+                token);
 
             if (!hasEffect)
                 throw new EffectNotPresentError("Effect not present");
@@ -378,15 +380,14 @@ namespace SomethingNeedDoing
 
             var vkName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
 
-            var InputSimulator = new InputSimulator();
-            var vkCode = (VirtualKeyCode)Enum.Parse(typeof(VirtualKeyCode), vkName, true);
-            if (!Enum.IsDefined(typeof(VirtualKeyCode), vkCode))
+            var vkCode = (KeyCode)Enum.Parse(typeof(KeyCode), vkName, true);
+            if (!Enum.IsDefined(typeof(KeyCode), vkCode))
             {
                 throw new InvalidMacroOperationException($"Invalid virtual key");
             }
             else
             {
-                InputSimulator.Keyboard.KeyPress(vkCode);
+                Simulate.Events().Click(vkCode).Invoke();
             }
         }
 
@@ -397,10 +398,10 @@ namespace SomethingNeedDoing
                 throw new InvalidMacroOperationException("Syntax error");
 
             var actorName = match.Groups["name"].Value.Trim(new char[] { ' ', '"', '\'' }).ToLower();
-            Dalamud.Game.ClientState.Actors.Types.Actor npc = null;
+            GameObject npc = null;
             try
             {
-                npc = plugin.Interface.ClientState.Actors.Where(actor => actor.Name.ToLower() == actorName).First();
+                npc = plugin.ObjectTable.Where(actor => actor.Name.TextValue.ToLower() == actorName).First();
             }
             catch (InvalidOperationException)
             {
@@ -409,7 +410,7 @@ namespace SomethingNeedDoing
 
             if (npc != null)
             {
-                plugin.Interface.ClientState.Targets.SetCurrentTarget(npc);
+                plugin.TargetManager.SetTarget(npc);
             }
         }
 
@@ -454,7 +455,7 @@ namespace SomethingNeedDoing
             }
         }
 
-        private bool LinearWaitFor(int waitInterval, int maxWait, CancellationToken token, Func<bool> action)
+        private bool LinearWaitFor(int waitInterval, int maxWait, Func<bool> action, CancellationToken token)
         {
             var totalWait = 0;
             while (true)
@@ -532,7 +533,7 @@ namespace SomethingNeedDoing
 
         private void PopulateCraftingActionNames()
         {
-            var actions = plugin.Interface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>();
+            var actions = plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>();
             foreach (var row in actions)
             {
                 var job = row?.ClassJob?.Value?.ClassJobCategory?.Value;
@@ -545,7 +546,7 @@ namespace SomethingNeedDoing
                     }
                 }
             }
-            var craftActions = plugin.Interface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.CraftAction>();
+            var craftActions = plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.CraftAction>();
             foreach (var row in craftActions)
             {
                 var name = row.Name.RawString.Trim(new char[] { ' ', '"', '\'' }).ToLower();
@@ -588,7 +589,7 @@ namespace SomethingNeedDoing
         public string[] CurrentMacroContent()
         {
             if (RunningMacros.Count == 0)
-                return new string[0];
+                return Array.Empty<string>();
             return (string[])RunningMacros.First().Steps.Clone();
         }
 

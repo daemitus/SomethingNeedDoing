@@ -1,6 +1,9 @@
 {
   "Author": "daemitus",
-  "Name": "SomethingNeedDoing",
-  "Description": "A hard-working peon that crafts what you tell him to. Work work.",
-  "RepoUrl": "https://github.com/daemitus/SomethingNeedDoing"
+  "Name": "Something Need Doing",
+  "Punchline": "Work work.",
+  "Description": "A hard-working peon that crafts what you tell him to. An all-in-one sythesizing solution.",
+  "RepoUrl": "https://github.com/daemitus/SomethingNeedDoing",
+  "IconUrl": "https://github.com/daemitus/SomethingNeedDoing/raw/master/res/icon.png",
+  "ImageUrls": []
 }
