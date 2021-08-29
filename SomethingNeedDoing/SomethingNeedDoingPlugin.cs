@@ -45,8 +45,7 @@ namespace SomethingNeedDoing
             [RequiredVersion("1.0")] ObjectTable objectTable,
             [RequiredVersion("1.0")] TargetManager targetManager)
         {
-            Interface = pluginInterface ?? throw new ArgumentNullException(nameof(pluginInterface), "DalamudPluginInterface cannot be null");
-
+            Interface = pluginInterface;
             ChatGui = chatGui;
             ClientState = clientState;
             CommandManager = commandManager;
@@ -56,7 +55,7 @@ namespace SomethingNeedDoing
             ObjectTable = objectTable;
             TargetManager = targetManager;
 
-            Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface, Name);
+            Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface, Name.Replace(" ", ""));
 
             CommandManager.AddHandler(Command, new CommandInfo(OnChatCommand)
             {

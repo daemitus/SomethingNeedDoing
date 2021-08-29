@@ -20,13 +20,9 @@ namespace SomethingNeedDoing
 
         public static SomethingNeedDoingConfiguration Load(DalamudPluginInterface pluginInterface, string pluginName)
         {
-            var pluginConfigs = (PluginConfigurations)pluginInterface.GetType()
-                .GetField("configs", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(pluginInterface);
-            var configDirectory = (DirectoryInfo)pluginConfigs.GetType()
-                .GetField("configDirectory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(pluginConfigs);
-            var pluginConfigPath = new FileInfo(Path.Combine(configDirectory.FullName, $"{pluginName}.json"));
+            var configDirectory = pluginInterface.ConfigDirectory;
+            var pluginConfigPath = new FileInfo(Path.Combine(configDirectory.Parent.FullName, $"{pluginName}.json"));
+
             if (!pluginConfigPath.Exists)
                 return new SomethingNeedDoingConfiguration();
             else

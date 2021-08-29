@@ -19,8 +19,6 @@ namespace SomethingNeedDoing
         private readonly List<RemoveNodeOperation> RemoveNode = new();
         private INode DraggedNode = null;
         private MacroNode ActiveMacroNode = null;
-        private ImFontPtr MonoFont;
-        private ImFontPtr MonoFontJP;
 
         private struct AddNodeOperation
         {
@@ -39,18 +37,14 @@ namespace SomethingNeedDoing
         {
             this.plugin = plugin;
 
-            plugin.Interface.UiBuilder.BuildFonts += UiBuilder_OnBuildFonts;
             plugin.Interface.UiBuilder.OpenConfigUi += UiBuilder_OnOpenConfigUi;
             plugin.Interface.UiBuilder.Draw += UiBuilder_OnBuildUi;
-            plugin.Interface.UiBuilder.RebuildFonts();
         }
 
         public void Dispose()
         {
-            plugin.Interface.UiBuilder.BuildFonts -= UiBuilder_OnBuildFonts;
             plugin.Interface.UiBuilder.OpenConfigUi -= UiBuilder_OnOpenConfigUi;
             plugin.Interface.UiBuilder.Draw -= UiBuilder_OnBuildUi;
-            plugin.Interface.UiBuilder.RebuildFonts();
         }
 
 #if DEBUG
@@ -60,32 +54,6 @@ namespace SomethingNeedDoing
 #endif
 
         public void Open() => IsImguiSetupOpen = true;
-
-        public void UiBuilder_OnBuildFonts()
-        {
-            var fontData = plugin.ReadResourceFile("ProggyVectorRegular.ttf");
-            var fontPtr = Marshal.AllocHGlobal(fontData.Length);
-            Marshal.Copy(fontData, 0, fontPtr, fontData.Length);
-
-            var fontDataJP = plugin.ReadResourceFile("NotoSansMonoCJKjp-Regular.otf");
-            var fontPtrJP = Marshal.AllocHGlobal(fontDataJP.Length);
-            Marshal.Copy(fontDataJP, 0, fontPtrJP, fontDataJP.Length);
-
-            unsafe
-            {
-                ImFontConfigPtr fontConfig = ImGuiNative.ImFontConfig_ImFontConfig();
-                fontConfig.MergeMode = true;
-                fontConfig.PixelSnapH = true;
-
-                MonoFont = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(fontPtr, fontData.Length, plugin.Configuration.CustomFontSize, fontConfig);
-
-                // Interface.GlyphRangesJapanese is internal, should be public
-                // Once it is, our file can be deleted
-                var japaneseRangeHandle = GCHandle.Alloc(GlyphRangesJapanese.GlyphRanges, GCHandleType.Pinned);
-                MonoFontJP = ImGui.GetIO().Fonts.AddFontFromMemoryTTF(fontPtrJP, fontDataJP.Length, plugin.Configuration.CustomFontSize, fontConfig, japaneseRangeHandle.AddrOfPinnedObject());
-                japaneseRangeHandle.Free();
-            }
-        }
 
         public void UiBuilder_OnOpenConfigUi() => IsImguiSetupOpen = true;
 
@@ -445,8 +413,7 @@ namespace SomethingNeedDoing
             }
 
             ImGui.PushItemWidth(-1);
-            ImGui.PushFont(MonoFont);
-            ImGui.PushFont(MonoFontJP);
+            ImGui.PushFont(UiBuilder.MonoFont);
 
             var contents = node.Contents;
             if (ImGui.InputTextMultiline($"##{node.Name}-editor", ref contents, 100_000, new Vector2(-1, -1)))
@@ -455,7 +422,6 @@ namespace SomethingNeedDoing
                 plugin.SaveConfiguration();
             }
 
-            ImGui.PopFont();
             ImGui.PopFont();
             ImGui.PopItemWidth();
         }
