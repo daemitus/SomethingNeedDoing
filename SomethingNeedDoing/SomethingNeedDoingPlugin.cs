@@ -80,13 +80,6 @@ namespace SomethingNeedDoing
             PluginUi.Dispose();
         }
 
-        private string _AssemblyLocation;
-        public string AssemblyLocation
-        {
-            get { return _AssemblyLocation ??= Assembly.GetExecutingAssembly().Location; }
-            set { _AssemblyLocation = value; }
-        }
-
         internal void SaveConfiguration() => Interface.SavePluginConfig(Configuration);
 
         private void OnChatCommand(string command, string arguments)
@@ -96,7 +89,7 @@ namespace SomethingNeedDoing
 
         internal byte[] ReadResourceFile(params string[] filePathSegments)
         {
-            var assemblyFolder = Path.GetDirectoryName(AssemblyLocation);
+            var assemblyFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             var resourceFilePath = Path.Combine(assemblyFolder, Path.Combine(filePathSegments));
             return File.ReadAllBytes(resourceFilePath);
         }
