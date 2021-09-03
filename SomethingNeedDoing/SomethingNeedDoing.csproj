@@ -43,6 +43,7 @@
     <PackageReference Include="WindowsInput" Version="6.3.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+    <PackageReference Include="XivCommon" Version="3.0.1" />
     <ProjectReference Include="..\lib\ClickLib\ClickLib\ClickLib.csproj" />
     <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
     <Reference Include="Newtonsoft.Json">

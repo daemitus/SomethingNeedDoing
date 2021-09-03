@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
+using XivCommon;
 
 namespace SomethingNeedDoing
 {
@@ -12,13 +13,15 @@ namespace SomethingNeedDoing
         private readonly FrameworkGetUiModuleDelegate FrameworkGetUIModule;
         private readonly ProcessChatBoxDelegate ProcessChatBox;
         private readonly Channel<string> ChatBoxMessages = Channel.CreateUnbounded<string>();
-
+        private readonly XivCommonBase Common;
         public ChatManager(SomethingNeedDoingPlugin plugin)
         {
             this.plugin = plugin;
             FrameworkGetUIModule = Marshal.GetDelegateForFunctionPointer<FrameworkGetUiModuleDelegate>(plugin.Address.FrameworkGetUIModuleAddress);
             ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(plugin.Address.ProcessChatBoxAddress);
-
+            
+            this.Common = new XivCommonBase();
+            
             plugin.Framework.Update += Framework_OnUpdateEvent;
         }
 
@@ -45,19 +48,21 @@ namespace SomethingNeedDoing
 
         private void SendChatBoxMessageInternal(string message)
         {
-            var framework = Marshal.ReadIntPtr(plugin.Address.FrameworkPointerAddress);
-            var uiModule = FrameworkGetUIModule(framework);
+            this.Common.Functions.Chat.SendMessage(message);
 
-            var payloadSize = Marshal.SizeOf<ChatPayload>();
-            var payloadPtr = Marshal.AllocHGlobal(payloadSize);
-            var payload = new ChatPayload(message);
-
-            Marshal.StructureToPtr(payload, payloadPtr, false);
-
-            ProcessChatBox(uiModule, payloadPtr, IntPtr.Zero, 0);
-
-            Marshal.FreeHGlobal(payloadPtr);
-            payload.Dispose();
+            // var framework = Marshal.ReadIntPtr(plugin.Address.FrameworkPointerAddress);
+            // var uiModule = FrameworkGetUIModule(framework);
+            // 
+            // var payloadSize = Marshal.SizeOf<ChatPayload>();
+            // var payloadPtr = Marshal.AllocHGlobal(payloadSize);
+            // var payload = new ChatPayload(message);
+            // 
+            // Marshal.StructureToPtr(payload, payloadPtr, false);
+            // 
+            // ProcessChatBox(uiModule, payloadPtr, IntPtr.Zero, 0);
+            // 
+            // Marshal.FreeHGlobal(payloadPtr);
+            // payload.Dispose();
         }
     }
 
