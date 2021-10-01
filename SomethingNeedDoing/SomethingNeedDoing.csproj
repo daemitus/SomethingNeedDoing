@@ -17,7 +17,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputPath>$(appdata)\XIVLauncher\devPlugins\SomethingNeedDoing\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
