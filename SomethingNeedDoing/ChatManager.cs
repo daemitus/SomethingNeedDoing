@@ -1,102 +1,116 @@
-using Dalamud.Game;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
-using XivCommon;
+
+using Dalamud.Game;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace SomethingNeedDoing
 {
+    /// <summary>
+    /// Manager that handles displaying output in the chat box.
+    /// </summary>
     internal class ChatManager : IDisposable
     {
-        private readonly SomethingNeedDoingPlugin plugin;
-        private readonly FrameworkGetUiModuleDelegate FrameworkGetUIModule;
-        private readonly ProcessChatBoxDelegate ProcessChatBox;
-        private readonly Channel<string> ChatBoxMessages = Channel.CreateUnbounded<string>();
-        private readonly XivCommonBase Common;
-        public ChatManager(SomethingNeedDoingPlugin plugin)
+        private readonly Channel<string> chatBoxMessages = Channel.CreateUnbounded<string>();
+        private readonly ProcessChatBoxDelegate processChatBox;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ChatManager"/> class.
+        /// </summary>
+        public ChatManager()
         {
-            this.plugin = plugin;
-            FrameworkGetUIModule = Marshal.GetDelegateForFunctionPointer<FrameworkGetUiModuleDelegate>(plugin.Address.FrameworkGetUIModuleAddress);
-            ProcessChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(plugin.Address.ProcessChatBoxAddress);
-            
-            this.Common = new XivCommonBase();
-            
-            plugin.Framework.Update += Framework_OnUpdateEvent;
+            this.processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(Service.Address.SendChatAddress);
+
+            Service.Framework.Update += this.Framework_OnUpdateEvent;
         }
 
+        private unsafe delegate void ProcessChatBoxDelegate(UIModule* uiModule, IntPtr message, IntPtr unused, byte a4);
+
+        /// <inheritdoc/>
         public void Dispose()
         {
-            plugin.Framework.Update -= Framework_OnUpdateEvent;
-            ChatBoxMessages.Writer.Complete();
+            Service.Framework.Update -= this.Framework_OnUpdateEvent;
+            this.chatBoxMessages.Writer.Complete();
         }
 
-        public void PrintMessage(string message) => plugin.ChatGui.Print(message);
+        /// <summary>
+        /// Print a normal message.
+        /// </summary>
+        /// <param name="message">The message to print.</param>
+        public void PrintMessage(string message) => Service.ChatGui.Print(message);
 
-        public void PrintError(string message) => plugin.ChatGui.PrintError(message);
+        /// <summary>
+        /// Print an error message.
+        /// </summary>
+        /// <param name="message">The message to print.</param>
+        public void PrintError(string message) => Service.ChatGui.PrintError(message);
+
+        /// <summary>
+        /// Process a command through the chat box.
+        /// </summary>
+        /// <param name="message">Message to send.</param>
+        public async void SendMessage(string message)
+        {
+            await this.chatBoxMessages.Writer.WriteAsync(message);
+        }
 
         private void Framework_OnUpdateEvent(Framework framework)
         {
-            if (ChatBoxMessages.Reader.TryRead(out var message))
-                SendChatBoxMessageInternal(message);
+            if (this.chatBoxMessages.Reader.TryRead(out var message))
+            {
+                this.SendMessageInternal(message);
+            }
         }
 
-        public async void SendChatBoxMessage(string message)
+        private unsafe void SendMessageInternal(string message)
         {
-            await ChatBoxMessages.Writer.WriteAsync(message);
+            var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
+            var uiModule = framework->GetUiModule();
+
+            using var payload = new ChatPayload(message);
+            var payloadPtr = Marshal.AllocHGlobal(400);
+            Marshal.StructureToPtr(payload, payloadPtr, false);
+
+            this.processChatBox(uiModule, payloadPtr, IntPtr.Zero, 0);
+
+            Marshal.FreeHGlobal(payloadPtr);
         }
 
-        private void SendChatBoxMessageInternal(string message)
+        [StructLayout(LayoutKind.Explicit)]
+        private readonly struct ChatPayload : IDisposable
         {
-            this.Common.Functions.Chat.SendMessage(message);
+            [FieldOffset(0)]
+            private readonly IntPtr textPtr;
 
-            // var framework = Marshal.ReadIntPtr(plugin.Address.FrameworkPointerAddress);
-            // var uiModule = FrameworkGetUIModule(framework);
-            // 
-            // var payloadSize = Marshal.SizeOf<ChatPayload>();
-            // var payloadPtr = Marshal.AllocHGlobal(payloadSize);
-            // var payload = new ChatPayload(message);
-            // 
-            // Marshal.StructureToPtr(payload, payloadPtr, false);
-            // 
-            // ProcessChatBox(uiModule, payloadPtr, IntPtr.Zero, 0);
-            // 
-            // Marshal.FreeHGlobal(payloadPtr);
-            // payload.Dispose();
-        }
-    }
+            [FieldOffset(16)]
+            private readonly ulong textLen;
 
-    [StructLayout(LayoutKind.Explicit)]
-    internal readonly struct ChatPayload : IDisposable
-    {
-        [FieldOffset(0x0)]
-        private readonly IntPtr textPtr;
+            [FieldOffset(8)]
+            private readonly ulong unk1;
 
-        [FieldOffset(0x8)]
-        private readonly ulong unk1;
+            [FieldOffset(24)]
+            private readonly ulong unk2;
 
-        [FieldOffset(0x10)]
-        private readonly ulong textLen;
+            internal ChatPayload(string text)
+            {
+                var stringBytes = Encoding.UTF8.GetBytes(text);
+                this.textPtr = Marshal.AllocHGlobal(stringBytes.Length + 30);
 
-        [FieldOffset(0x18)]
-        private readonly ulong unk2;
+                Marshal.Copy(stringBytes, 0, this.textPtr, stringBytes.Length);
+                Marshal.WriteByte(this.textPtr + stringBytes.Length, 0);
 
-        internal ChatPayload(string text)
-        {
-            var textBytes = Encoding.UTF8.GetBytes(text);
-            textPtr = Marshal.AllocHGlobal(textBytes.Length + 1);
+                this.textLen = (ulong)(stringBytes.Length + 1);
 
-            Marshal.Copy(textBytes, 0, textPtr, textBytes.Length);
-            Marshal.WriteByte(textPtr + textBytes.Length, 0);
+                this.unk1 = 64;
+                this.unk2 = 0;
+            }
 
-            textLen = (ulong)(textBytes.Length + 1);
-            unk1 = 64;
-            unk2 = 0;
-        }
-
-        public void Dispose()
-        {
-            Marshal.FreeHGlobal(textPtr);
+            public void Dispose()
+            {
+                Marshal.FreeHGlobal(this.textPtr);
+            }
         }
     }
 }

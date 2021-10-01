@@ -1,48 +1,72 @@
-using Dalamud.Configuration;
-using Dalamud.Plugin;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+
+using Dalamud.Configuration;
+using Newtonsoft.Json;
 
 namespace SomethingNeedDoing
 {
+    /// <summary>
+    /// Plugin configuration.
+    /// </summary>
     public class SomethingNeedDoingConfiguration : IPluginConfiguration
     {
+        /// <summary>
+        /// Gets or sets the configuration version.
+        /// </summary>
         public int Version { get; set; } = 1;
 
+        /// <summary>
+        /// Gets the root folder.
+        /// </summary>
         public FolderNode RootFolder { get; private set; } = new FolderNode { Name = "/" };
 
-        public float CustomFontSize { get; set; } = 15.0f;
-
-        public static SomethingNeedDoingConfiguration Load(DalamudPluginInterface pluginInterface, string pluginName)
+        /// <summary>
+        /// Loads the configuration.
+        /// </summary>
+        /// <param name="configDirectory">Configuration directory.</param>
+        /// <returns>A configuration.</returns>
+        internal static SomethingNeedDoingConfiguration Load(DirectoryInfo configDirectory)
         {
-            var configDirectory = pluginInterface.ConfigDirectory;
-            var pluginConfigPath = new FileInfo(Path.Combine(configDirectory.Parent.FullName, $"{pluginName}.json"));
+            var pluginConfigPath = new FileInfo(Path.Combine(configDirectory.Parent!.FullName, $"SomethingNeedDoing.json"));
 
             if (!pluginConfigPath.Exists)
                 return new SomethingNeedDoingConfiguration();
-            else
-                return JsonConvert.DeserializeObject<SomethingNeedDoingConfiguration>(File.ReadAllText(pluginConfigPath.FullName));
+
+            var data = File.ReadAllText(pluginConfigPath.FullName);
+            var conf = JsonConvert.DeserializeObject<SomethingNeedDoingConfiguration>(data);
+            return conf ?? new SomethingNeedDoingConfiguration();
         }
 
-        public IEnumerable<INode> GetAllNodes()
+        /// <summary>
+        /// Save the plugin configuration.
+        /// </summary>
+        internal void Save() => Service.Interface.SavePluginConfig(this);
+
+        /// <summary>
+        /// Get all nodes in the tree.
+        /// </summary>
+        /// <returns>All the nodes.</returns>
+        internal IEnumerable<INode> GetAllNodes()
         {
-            return new INode[] { RootFolder }.Concat(GetAllNodes(RootFolder.Children));
+            return new INode[] { this.RootFolder }.Concat(this.GetAllNodes(this.RootFolder.Children));
         }
 
-        public IEnumerable<INode> GetAllNodes(IEnumerable<INode> nodes)
+        /// <summary>
+        /// Gets all the nodes in this subset of the tree.
+        /// </summary>
+        /// <param name="nodes">Nodes to search.</param>
+        /// <returns>The nodes in the tree.</returns>
+        internal IEnumerable<INode> GetAllNodes(IEnumerable<INode> nodes)
         {
             foreach (var node in nodes)
             {
                 yield return node;
-                if (node is FolderNode)
+                if (node is FolderNode folder)
                 {
-                    var children = (node as FolderNode).Children;
-                    foreach (var childNode in GetAllNodes(children))
+                    var childNodes = this.GetAllNodes(folder.Children);
+                    foreach (var childNode in childNodes)
                     {
                         yield return childNode;
                     }
@@ -50,9 +74,15 @@ namespace SomethingNeedDoing
             }
         }
 
-        public bool TryFindParent(INode node, out FolderNode parent)
+        /// <summary>
+        /// Tries to find the parent of a node.
+        /// </summary>
+        /// <param name="node">Node to check.</param>
+        /// <param name="parent">Parent of the node or null.</param>
+        /// <returns>A value indicating whether the parent was found.</returns>
+        internal bool TryFindParent(INode node, out FolderNode? parent)
         {
-            foreach (var candidate in GetAllNodes())
+            foreach (var candidate in this.GetAllNodes())
             {
                 if (candidate is FolderNode folder && folder.Children.Contains(node))
                 {
@@ -60,65 +90,9 @@ namespace SomethingNeedDoing
                     return true;
                 }
             }
+
             parent = null;
             return false;
         }
-    }
-
-    public interface INode
-    {
-        public string Name { get; set; }
-    }
-
-    public class MacroNode : INode
-    {
-        public string Name { get; set; }
-
-        public string Contents { get; set; } = "";
-    }
-
-    public class FolderNode : INode
-    {
-        public string Name { get; set; }
-
-        [JsonProperty(ItemConverterType = typeof(ConcreteNodeConverter))]
-        public List<INode> Children { get; } = new List<INode>();
-    }
-
-    public class ConcreteNodeConverter : JsonConverter
-    {
-        public override bool CanRead => true;
-        public override bool CanWrite => false;
-        public override bool CanConvert(Type objectType) => objectType == typeof(INode);
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            var jObject = JObject.Load(reader);
-            var jType = jObject["$type"].Value<string>();
-
-            if (jType == SimpleName(typeof(MacroNode)))
-            {
-                var obj = new MacroNode();
-                serializer.Populate(jObject.CreateReader(), obj);
-                return obj;
-            }
-            else if (jType == SimpleName(typeof(FolderNode)))
-            {
-                var obj = new FolderNode();
-                serializer.Populate(jObject.CreateReader(), obj);
-                return obj;
-            }
-            else
-            {
-                throw new NotSupportedException($"Node type \"{jType}\" is not supported.");
-            }
-        }
-
-        private string SimpleName(Type type)
-        {
-            return $"{type.FullName}, {type.Assembly.GetName().Name}";
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) => throw new NotImplementedException();
     }
 }

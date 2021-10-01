@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>daemitus</Authors>
     <Company>-</Company>
-    <Version>1.1.0.2</Version>
+    <Version>1.1.1.0</Version>
     <Description></Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/daemitus/SomethingNeedDoing</PackageProjectUrl>
@@ -11,55 +11,53 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0-windows</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <Platforms>x64</Platforms>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>$(appdata)\XIVLauncher\devPlugins\SomethingNeedDoing\</OutputPath>
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Documentation">
+    <DocumentationFile></DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <Content Remove="C:\Users\Raymond\.nuget\packages\windowsinput\6.3.0\contentFiles\any\netcoreapp3.1\.nuget\mouse-keyboard-hook-logo.png" />
-    <None Remove="C:\Users\Raymond\.nuget\packages\windowsinput\6.3.0\contentFiles\any\netcoreapp3.1\.nuget\mouse-keyboard-hook-logo.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\res\icon.png" Link="images\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
-  
+
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\fonts\NotoSansMonoCJKjp-Regular.otf" Link="NotoSansMonoCJKjp-Regular.otf" CopyToOutputDirectory="PreserveNewest" Visible="false" />
-    <Content Include="..\fonts\ProggyVectorRegular.ttf" Link="ProggyVectorRegular.ttf" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <AdditionalFiles Include="..\stylecop.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DalamudLinter" Version="1.0.3" />
     <PackageReference Include="DalamudPackager" Version="2.1.2" />
     <PackageReference Include="ILRepack" Version="2.0.18" GeneratePathProperty="true" />
-    <PackageReference Include="WindowsInput" Version="6.3.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
-    <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
-    <PackageReference Include="XivCommon" Version="3.0.1" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.333">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <ProjectReference Include="..\lib\ClickLib\ClickLib\ClickLib.csproj" />
     <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Dalamud">
       <HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ImGui.NET">
       <HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="ImGuiScene">
-      <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Lumina">
@@ -69,6 +67,10 @@
     <Reference Include="Lumina.Excel">
       <HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
       <Private>false</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
 
@@ -82,7 +84,8 @@
 
   <Target Name="CleanOutDir" AfterTargets="ILRepack">
     <ItemGroup>
-      <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetPath)" />
+      <DeleteAssemblies Include="$(TargetDir)*.dll" Exclude="$(TargetDir)$(TargetName).dll" />
+      <DeleteAssemblies Include="$(TargetDir)*.pdb" Exclude="$(TargetDir)$(TargetName).pdb" />
     </ItemGroup>
     <Message Text="Deleting @(DeleteAssemblies)" Importance="high" />
     <Delete Files="@(DeleteAssemblies)" />
