@@ -22,6 +22,8 @@ namespace SomethingNeedDoing
         {
             pluginInterface.Create<Service>();
 
+            ClickLib.Click.Initialize(pluginInterface);
+
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
             Service.Address = new PluginAddressResolver();
             Service.Address.Setup();

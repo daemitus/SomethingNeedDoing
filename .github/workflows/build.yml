@@ -61,28 +61,6 @@ jobs:
         author_name: GitHub Action
         author_email: github-actions[bot]@users.noreply.github.com
         message: Update ${{ env.INTERNAL_NAME }}
-    
-  deploy_api4:
-    needs: build
-    if: "contains(toJSON(github.event.commits.*.message), '[PUSH4]')"
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        repository: ${{ env.PERSONAL_PLUGIN_REPO }}
-        token: ${{ secrets.PAT }}
-        ref: api4
-    - uses: actions/download-artifact@v2
-      with:
-        name: PluginRepoZip
-        path: plugins/${{ env.INTERNAL_NAME }}
-    - uses: EndBug/add-and-commit@v7
-      with:
-        add: --all
-        branch: api4
-        author_name: GitHub Action
-        author_email: github-actions[bot]@users.noreply.github.com
-        message: Update ${{ env.INTERNAL_NAME }}
 
   pull_request:
     needs: build

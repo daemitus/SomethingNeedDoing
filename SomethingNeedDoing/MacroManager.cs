@@ -52,7 +52,7 @@ namespace SomethingNeedDoing
             Service.ClientState.Login += this.OnLogin;
             Service.ClientState.Logout += this.OnLogout;
 
-            Click.Initialize();
+            // Click.Initialize();
 
             this.PopulateCraftingActionNames();
 
