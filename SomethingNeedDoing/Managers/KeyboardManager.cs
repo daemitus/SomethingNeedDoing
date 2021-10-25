@@ -11,7 +11,7 @@ namespace SomethingNeedDoing
     /// <summary>
     /// Simulate pressing keyboard input.
     /// </summary>
-    internal static class Keyboard
+    internal static class KeyboardManager
     {
         private static IntPtr? handle = null;
 

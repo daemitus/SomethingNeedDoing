@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text.RegularExpressions;
@@ -7,10 +6,9 @@ using System.Text.RegularExpressions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
+using SomethingNeedDoing.Managers;
 
-using static SomethingNeedDoing.MacroManager;
-
-namespace SomethingNeedDoing
+namespace SomethingNeedDoing.Interface
 {
     /// <summary>
     /// Main window for macro execution.
@@ -18,8 +16,6 @@ namespace SomethingNeedDoing
     internal class MacroWindow : Window
     {
         private readonly Regex incrementalName = new(@"(?<all> \((?<index>\d+)\))$", RegexOptions.Compiled);
-        private readonly List<AddNodeOperation> addNode = new();
-        private readonly List<RemoveNodeOperation> removeNode = new();
 
         private INode? draggedNode = null;
         private MacroNode? activeMacroNode = null;
@@ -34,6 +30,8 @@ namespace SomethingNeedDoing
             this.SizeCondition = ImGuiCond.FirstUseEver;
             this.RespectCloseHotkey = false;
         }
+
+        private static FolderNode RootFolder => Service.Configuration.RootFolder;
 
         /// <inheritdoc/>
         public override void PreDraw()
@@ -52,7 +50,7 @@ namespace SomethingNeedDoing
         {
             ImGui.Columns(2);
 
-            this.DisplayNode(Service.Configuration.RootFolder);
+            this.DisplayNode(RootFolder);
 
             ImGui.NextColumn();
 
@@ -61,8 +59,6 @@ namespace SomethingNeedDoing
             this.DisplayMacroEdit();
 
             ImGui.Columns(1);
-
-            this.ResolveAddRemoveNodes();
         }
 
         #region node tree
@@ -106,7 +102,7 @@ namespace SomethingNeedDoing
 
         private void DisplayFolderNode(FolderNode node)
         {
-            if (node == Service.Configuration.RootFolder)
+            if (node == RootFolder)
             {
                 ImGui.SetNextItemOpen(true, ImGuiCond.FirstUseEver);
             }
@@ -118,7 +114,7 @@ namespace SomethingNeedDoing
 
             if (expanded)
             {
-                foreach (var childNode in node.Children)
+                foreach (var childNode in node.Children.ToArray())
                 {
                     this.DisplayNode(childNode);
                 }
@@ -137,7 +133,7 @@ namespace SomethingNeedDoing
                 {
                     var all = match.Groups["all"].Value;
                     var index = int.Parse(match.Groups["index"].Value);
-                    name = name.Substring(0, name.Length - all.Length);
+                    name = name[..^all.Length];
                     name = $"{name} ({index + 1})";
                 }
                 else
@@ -173,18 +169,20 @@ namespace SomethingNeedDoing
                     if (ImGuiEx.IconButton(FontAwesomeIcon.Plus, "Add macro"))
                     {
                         var newNode = new MacroNode { Name = this.GetUniqueNodeName("Untitled macro") };
-                        this.addNode.Add(new AddNodeOperation { Node = newNode, ParentNode = folderNode, Index = -1 });
+                        folderNode.Children.Add(newNode);
+                        Service.Configuration.Save();
                     }
 
                     ImGui.SameLine();
                     if (ImGuiEx.IconButton(FontAwesomeIcon.FolderPlus, "Add folder"))
                     {
                         var newNode = new FolderNode { Name = this.GetUniqueNodeName("Untitled folder") };
-                        this.addNode.Add(new AddNodeOperation { Node = newNode, ParentNode = folderNode, Index = -1 });
+                        folderNode.Children.Add(newNode);
+                        Service.Configuration.Save();
                     }
                 }
 
-                if (node != Service.Configuration.RootFolder)
+                if (node != RootFolder)
                 {
                     ImGui.SameLine();
                     if (ImGuiEx.IconButton(FontAwesomeIcon.Copy, "Copy Name"))
@@ -197,7 +195,8 @@ namespace SomethingNeedDoing
                     {
                         if (Service.Configuration.TryFindParent(node, out var parentNode))
                         {
-                            this.removeNode.Add(new RemoveNodeOperation { Node = node, ParentNode = parentNode! });
+                            parentNode!.Children.Remove(node);
+                            Service.Configuration.Save();
                         }
                     }
 
@@ -210,7 +209,7 @@ namespace SomethingNeedDoing
 
         private void NodeDragDrop(INode node)
         {
-            if (node != Service.Configuration.RootFolder)
+            if (node != RootFolder)
             {
                 if (ImGui.BeginDragDropSource())
                 {
@@ -238,8 +237,9 @@ namespace SomethingNeedDoing
                     {
                         if (targetNode is FolderNode targetFolderNode)
                         {
-                            this.addNode.Add(new AddNodeOperation { Node = this.draggedNode, ParentNode = targetFolderNode, Index = -1 });
-                            this.removeNode.Add(new RemoveNodeOperation { Node = this.draggedNode, ParentNode = draggedNodeParent! });
+                            draggedNodeParent!.Children.Remove(this.draggedNode);
+                            targetFolderNode.Children.Add(this.draggedNode);
+                            Service.Configuration.Save();
                         }
                         else
                         {
@@ -255,8 +255,9 @@ namespace SomethingNeedDoing
                                     }
                                 }
 
-                                this.addNode.Add(new AddNodeOperation { Node = this.draggedNode, ParentNode = targetNodeParent, Index = targetNodeIndex });
-                                this.removeNode.Add(new RemoveNodeOperation { Node = this.draggedNode, ParentNode = draggedNodeParent! });
+                                draggedNodeParent!.Children.Remove(this.draggedNode);
+                                targetNodeParent.Children.Insert(targetNodeIndex, this.draggedNode);
+                                Service.Configuration.Save();
                             }
                             else
                             {
@@ -428,56 +429,6 @@ namespace SomethingNeedDoing
         }
 
         #endregion
-
-        private void ResolveAddRemoveNodes()
-        {
-            if (this.addNode.Count > 0 || this.removeNode.Count > 0)
-            {
-                if (this.removeNode.Count > 0)
-                {
-                    foreach (var inst in this.removeNode)
-                    {
-                        if (this.activeMacroNode == inst.Node)
-                            this.activeMacroNode = null;
-
-                        inst.ParentNode.Children.Remove(inst.Node);
-                    }
-
-                    this.removeNode.Clear();
-                }
-
-                if (this.addNode.Count > 0)
-                {
-                    foreach (var inst in this.addNode)
-                    {
-                        if (inst.Index < 0)
-                            inst.ParentNode.Children.Add(inst.Node);
-                        else
-                            inst.ParentNode.Children.Insert(inst.Index, inst.Node);
-                    }
-
-                    this.addNode.Clear();
-                }
-
-                Service.Configuration.Save();
-            }
-        }
-
-        private struct AddNodeOperation
-        {
-            public INode Node { get; init; }
-
-            public FolderNode ParentNode { get; init; }
-
-            public int Index { get; init; }
-        }
-
-        private struct RemoveNodeOperation
-        {
-            public INode Node { get; init; }
-
-            public FolderNode ParentNode { get; init; }
-        }
 
         private static class ImGuiEx
         {

@@ -13,8 +13,10 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using SomethingNeedDoing.CraftingData;
+using SomethingNeedDoing.Exceptions;
 
-namespace SomethingNeedDoing
+namespace SomethingNeedDoing.Managers
 {
     /// <summary>
     /// Manager that handles running macros.
@@ -39,6 +41,7 @@ namespace SomethingNeedDoing
         private readonly ManualResetEvent pausedWaiter = new(true);
         private readonly ManualResetEvent loggedInWaiter = new(false);
         private readonly ManualResetEvent dataAvailableWaiter = new(false);
+
         private readonly List<string> craftingActionNames = new();
         private readonly Hook<EventFrameworkDelegate> eventFrameworkHook;
 
@@ -68,37 +71,6 @@ namespace SomethingNeedDoing
         private delegate IntPtr EventFrameworkDelegate(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize);
 
         /// <summary>
-        /// The state of the macro manager.
-        /// </summary>
-        internal enum LoopState
-        {
-            /// <summary>
-            /// Not logged in.
-            /// </summary>
-            NotLoggedIn,
-
-            /// <summary>
-            /// Waiting.
-            /// </summary>
-            Waiting,
-
-            /// <summary>
-            /// Running.
-            /// </summary>
-            Running,
-
-            /// <summary>
-            /// Paused.
-            /// </summary>
-            Paused,
-
-            /// <summary>
-            /// Stopped.
-            /// </summary>
-            Stopped,
-        }
-
-        /// <summary>
         /// Gets the state of the macro manager.
         /// </summary>
         public LoopState State { get; private set; } = LoopState.Waiting;
@@ -116,24 +88,19 @@ namespace SomethingNeedDoing
             this.pausedWaiter.Dispose();
         }
 
-        private void OnEventFrameworkDetour(IntPtr dataPtr, byte dataSize)
-        {
-            if (dataSize >= 4)
-            {
-                var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr);
-                if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
-                {
-                    this.craftingData = Marshal.PtrToStructure<CraftingState>(dataPtr);
-                    this.dataAvailableWaiter.Set();
-                }
-            }
-        }
-
         private IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize)
         {
             try
             {
-                this.OnEventFrameworkDetour(dataPtr, dataSize);
+                if (dataSize >= 4)
+                {
+                    var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr);
+                    if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
+                    {
+                        this.craftingData = Marshal.PtrToStructure<CraftingState>(dataPtr);
+                        this.dataAvailableWaiter.Set();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -426,7 +393,7 @@ namespace SomethingNeedDoing
 
             if (Enum.TryParse<VirtualKey>(vkName, true, out var vkCode))
             {
-                Keyboard.Send(vkCode);
+                KeyboardManager.Send(vkCode);
             }
             else
             {

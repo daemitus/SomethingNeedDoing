@@ -6,7 +6,7 @@ using System.Threading.Channels;
 using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
-namespace SomethingNeedDoing
+namespace SomethingNeedDoing.Managers
 {
     /// <summary>
     /// Manager that handles displaying output in the chat box.
@@ -23,7 +23,7 @@ namespace SomethingNeedDoing
         {
             this.processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(Service.Address.SendChatAddress);
 
-            Service.Framework.Update += this.Framework_OnUpdateEvent;
+            Service.Framework.Update += this.FrameworkUpdate;
         }
 
         private unsafe delegate void ProcessChatBoxDelegate(UIModule* uiModule, IntPtr message, IntPtr unused, byte a4);
@@ -31,7 +31,8 @@ namespace SomethingNeedDoing
         /// <inheritdoc/>
         public void Dispose()
         {
-            Service.Framework.Update -= this.Framework_OnUpdateEvent;
+            Service.Framework.Update -= this.FrameworkUpdate;
+
             this.chatBoxMessages.Writer.Complete();
         }
 
@@ -39,13 +40,15 @@ namespace SomethingNeedDoing
         /// Print a normal message.
         /// </summary>
         /// <param name="message">The message to print.</param>
-        public void PrintMessage(string message) => Service.ChatGui.Print(message);
+        public void PrintMessage(string message)
+            => Service.ChatGui.Print(message);
 
         /// <summary>
         /// Print an error message.
         /// </summary>
         /// <param name="message">The message to print.</param>
-        public void PrintError(string message) => Service.ChatGui.PrintError(message);
+        public void PrintError(string message)
+            => Service.ChatGui.PrintError(message);
 
         /// <summary>
         /// Process a command through the chat box.
@@ -56,7 +59,7 @@ namespace SomethingNeedDoing
             await this.chatBoxMessages.Writer.WriteAsync(message);
         }
 
-        private void Framework_OnUpdateEvent(Framework framework)
+        private void FrameworkUpdate(Framework framework)
         {
             if (this.chatBoxMessages.Reader.TryRead(out var message))
             {

@@ -6,6 +6,7 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
+using SomethingNeedDoing.Managers;
 
 namespace SomethingNeedDoing
 {

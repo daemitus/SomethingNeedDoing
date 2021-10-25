@@ -17,11 +17,3 @@ using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Grouping usage of relevant classes.", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Name is relevant to contents.", Scope = "type", Target = "~T:SomethingNeedDoing.INode")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Self documenting.", Scope = "type", Target = "~T:SomethingNeedDoing.ActionResultFlags")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Self documenting.", Scope = "type", Target = "~T:SomethingNeedDoing.ActionResult")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Self documenting.", Scope = "type", Target = "~T:SomethingNeedDoing.CraftingCondition")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1602:Enumeration items should be documented", Justification = "Self documenting.", Scope = "type", Target = "~T:SomethingNeedDoing.ActionCategory")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1600:Elements should be documented", Justification = "Self documenting.", Scope = "type", Target = "~T:SomethingNeedDoing.CraftingState")]
-[assembly: SuppressMessage("StyleCop.CSharp.OrderingRules", "SA1201:Elements should appear in the correct order", Justification = "I want it there.", Scope = "type", Target = "~T:SomethingNeedDoing.ActionCategory")]
-[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "I want it there.", Scope = "type", Target = "~T:SomethingNeedDoing.EffectNotPresentError")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1134:Attributes should not share line", Justification = "StructLayout", Scope = "type", Target = "~T:SomethingNeedDoing.CraftingState")]

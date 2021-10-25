@@ -1,6 +1,8 @@
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
+using SomethingNeedDoing.Interface;
+using SomethingNeedDoing.Managers;
 
 namespace SomethingNeedDoing
 {
@@ -22,7 +24,7 @@ namespace SomethingNeedDoing
         {
             pluginInterface.Create<Service>();
 
-            ClickLib.Click.Initialize(pluginInterface);
+            ClickLib.Click.Initialize();
 
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
             Service.Address = new PluginAddressResolver();
