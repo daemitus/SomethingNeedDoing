@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
+using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Managers;
 
 namespace SomethingNeedDoing.Interface
@@ -160,7 +161,7 @@ namespace SomethingNeedDoing.Interface
                 {
                     if (ImGuiEx.IconButton(FontAwesomeIcon.Play, "Run"))
                     {
-                        Service.MacroManager.RunMacro(macroNode);
+                        this.RunMacro(macroNode);
                     }
                 }
 
@@ -277,6 +278,18 @@ namespace SomethingNeedDoing.Interface
             }
         }
 
+        private void RunMacro(MacroNode node)
+        {
+            try
+            {
+                Service.MacroManager.EnqueueMacro(node);
+            }
+            catch (MacroSyntaxError ex)
+            {
+                Service.ChatManager.PrintError($"Syntax error on line {ex.LineNumber + 1}");
+            }
+        }
+
         #endregion
 
         #region running macros
@@ -387,7 +400,7 @@ namespace SomethingNeedDoing.Interface
 
             if (ImGuiEx.IconButton(FontAwesomeIcon.Play, "Run"))
             {
-                Service.MacroManager.RunMacro(node);
+                this.RunMacro(node);
             }
 
             ImGui.SameLine();

@@ -1,29 +1,31 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
+
+using Dalamud.Logging;
 
 namespace SomethingNeedDoing.MacroCommands
 {
     /// <summary>
-    /// A command handled by the game.
+    /// The /wait command.
     /// </summary>
-    internal class NativeCommand : MacroCommand
+    internal class WaitCommand : MacroCommand
     {
-        private readonly string text;
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="NativeCommand"/> class.
+        /// Initializes a new instance of the <see cref="WaitCommand"/> class.
         /// </summary>
         /// <param name="text">Original text.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="waitUntil">WaitUntil value.</param>
-        public NativeCommand(string text, float wait, float waitUntil)
+        public WaitCommand(string text, int wait, int waitUntil)
             : base(text, wait, waitUntil)
         {
-            this.text = text;
         }
 
         /// <inheritdoc/>
-        public async override void Execute(CancellationToken token)
+        public async override Task Execute(CancellationToken token)
         {
+            PluginLog.Debug($"Executing: {this.Text}");
+
             await this.PerformWait(token);
         }
     }

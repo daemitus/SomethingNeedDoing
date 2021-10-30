@@ -1,30 +1,33 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
+
+using Dalamud.Logging;
 
 namespace SomethingNeedDoing.MacroCommands
 {
     /// <summary>
-    /// The /runmacro command.
+    /// A command handled by the game.
     /// </summary>
-    internal class RunMacroCommand : MacroCommand
+    internal class NativeCommand : MacroCommand
     {
-        private readonly string macroName;
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="RunMacroCommand"/> class.
+        /// Initializes a new instance of the <see cref="NativeCommand"/> class.
         /// </summary>
         /// <param name="text">Original text.</param>
-        /// <param name="macroName">Macro name.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="waitUntil">WaitUntil value.</param>
-        public RunMacroCommand(string text, string macroName, float wait, float waitUntil)
+        public NativeCommand(string text, int wait, int waitUntil)
             : base(text, wait, waitUntil)
         {
-            this.macroName = macroName;
         }
 
         /// <inheritdoc/>
-        public async override void Execute(CancellationToken token)
+        public async override Task Execute(CancellationToken token)
         {
+            PluginLog.Debug($"Executing: {this.Text}");
+
+            Service.ChatManager.SendMessage(this.Text);
+
             await this.PerformWait(token);
         }
     }

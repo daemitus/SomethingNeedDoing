@@ -1,4 +1,7 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
+
+using Dalamud.Logging;
 
 namespace SomethingNeedDoing.MacroCommands
 {
@@ -7,7 +10,7 @@ namespace SomethingNeedDoing.MacroCommands
     /// </summary>
     internal class LoopCommand : MacroCommand
     {
-        private readonly int loopCount;
+        private int loopsRemaining;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoopCommand"/> class.
@@ -16,15 +19,23 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="loopCount">Loop count.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="waitUntil">WaitUntil value.</param>
-        public LoopCommand(string text, int loopCount, float wait, float waitUntil)
+        public LoopCommand(string text, int loopCount, int wait, int waitUntil)
             : base(text, wait, waitUntil)
         {
-            this.loopCount = loopCount;
+            this.loopsRemaining = loopCount == 0 ? int.MaxValue : loopCount;
         }
 
         /// <inheritdoc/>
-        public async override void Execute(CancellationToken token)
+        public async override Task Execute(CancellationToken token)
         {
+            PluginLog.Debug($"Executing: {this.Text}");
+
+            if (this.loopsRemaining == 0)
+                return;
+
+            this.loopsRemaining--;
+            Service.MacroManager.Loop();
+
             await this.PerformWait(token);
         }
     }

@@ -1,4 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Dalamud.Game.ClientState.Keys;
+using Dalamud.Logging;
+using SomethingNeedDoing.Exceptions;
 
 namespace SomethingNeedDoing.MacroCommands
 {
@@ -16,15 +22,22 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="keyName">VirtualKey name.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="waitUntil">WaitUntil value.</param>
-        public SendCommand(string text, string keyName, float wait, float waitUntil)
+        public SendCommand(string text, string keyName, int wait, int waitUntil)
             : base(text, wait, waitUntil)
         {
             this.keyName = keyName;
         }
 
         /// <inheritdoc/>
-        public async override void Execute(CancellationToken token)
+        public async override Task Execute(CancellationToken token)
         {
+            PluginLog.Debug($"Executing: {this.Text}");
+
+            if (!Enum.TryParse<VirtualKey>(this.keyName, true, out var vkCode))
+                throw new MacroCommandError("Invalid virtual key");
+
+            KeyboardManager.Send(vkCode);
+
             await this.PerformWait(token);
         }
     }

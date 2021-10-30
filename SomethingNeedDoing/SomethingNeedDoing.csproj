@@ -31,10 +31,6 @@
     <Content Remove="C:\Users\Raymond\.nuget\packages\windowsinput\6.3.0\contentFiles\any\netcoreapp3.1\.nuget\mouse-keyboard-hook-logo.png" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="..\res\icon.png" Link="images\icon.png" CopyToOutputDirectory="PreserveNewest" Visible="false" />
-  </ItemGroup>
-
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>

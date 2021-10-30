@@ -1,4 +1,10 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using ClickLib;
+using Dalamud.Logging;
+using SomethingNeedDoing.Exceptions;
 
 namespace SomethingNeedDoing.MacroCommands
 {
@@ -16,15 +22,30 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="clickName">Click name.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="waitUntil">WaitUntil value.</param>
-        public ClickCommand(string text, string clickName, float wait, float waitUntil)
+        public ClickCommand(string text, string clickName, int wait, int waitUntil)
             : base(text, wait, waitUntil)
         {
             this.clickName = clickName;
         }
 
         /// <inheritdoc/>
-        public async override void Execute(CancellationToken token)
+        public async override Task Execute(CancellationToken token)
         {
+            PluginLog.Debug($"Executing: {this.Text}");
+
+            try
+            {
+                Click.SendClick(this.clickName);
+            }
+            catch (ClickNotFoundError)
+            {
+                throw new MacroCommandError("Click not found");
+            }
+            catch (Exception ex)
+            {
+                throw new MacroCommandError("Unexpected click error", ex);
+            }
+
             await this.PerformWait(token);
         }
     }

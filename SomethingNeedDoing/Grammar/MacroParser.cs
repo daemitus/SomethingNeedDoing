@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 using Dalamud.Logging;
 using Eto.Parse;
+using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.MacroCommands;
 
 [assembly: InternalsVisibleTo("Test")]
@@ -29,11 +31,7 @@ namespace SomethingNeedDoing.Grammar
 
             var result = MacroGrammar.Definition.Match(macroText);
             if (!result.Success)
-            {
-                // TODO throw some sort of error with line numbers and stuff.
-                PluginLog.Debug($"[ERR]: Could not match\n{result.ErrorMessage}");
-                yield break;
-            }
+                throw new MacroSyntaxError(result.ErrorMessage, result.ErrorLine, result.ErrorIndex);
 
             foreach (var match in result.Matches)
             {
@@ -100,8 +98,8 @@ namespace SomethingNeedDoing.Grammar
 
                     case "waitCommand":
                         {
-                            var wait = ParseFloat(FindSubMatch(match, "wait"));
-                            var until = ParseFloat(FindSubMatch(match, "until"));
+                            var wait = (int)(ParseFloat(FindSubMatch(match, "wait")) * 1000);
+                            var until = (int)(ParseFloat(FindSubMatch(match, "waitUntil")) * 1000);
                             yield return new WaitCommand(original, wait, until);
                             break;
                         }
@@ -123,23 +121,24 @@ namespace SomethingNeedDoing.Grammar
                     case "nativeCommand":
                         {
                             var text = FindSubMatch(match, "text")!.Text;
-                            var wait = ParseFloat(FindSubMatch(match, "wait"));
-                            var until = ParseFloat(FindSubMatch(match, "waitUntil"));
+                            var wait = (int)(ParseFloat(FindSubMatch(match, "wait")) * 1000);
+                            var until = (int)(ParseFloat(FindSubMatch(match, "waitUntil")) * 1000);
                             yield return new NativeCommand(text, wait, until);
                             break;
                         }
 
                     default:
-                        PluginLog.Debug($"what is this {match}");
-                        break;
+                        throw new ArgumentException($"Unknown parser name: {match.Name}");
                 }
             }
+
+            yield break;
         }
 
         private static Match? FindSubMatch(Match match, string name)
                 => match!.Matches.FirstOrDefault(m => m.Name == name);
 
-        private static (float Wait, float Until) ExtractWaitModifier(Match match, ref string original)
+        private static (int Wait, int Until) ExtractWaitModifier(Match match, ref string original)
         {
             var modifier = FindSubMatch(match, "waitModifier");
             if (modifier == default)
@@ -147,12 +146,12 @@ namespace SomethingNeedDoing.Grammar
 
             original = original.Replace(modifier.Text, string.Empty);
 
-            var wait = ParseFloat(FindSubMatch(match, "wait"));
-            var until = ParseFloat(FindSubMatch(match, "waitUntil"));
+            var wait = (int)(ParseFloat(FindSubMatch(modifier, "wait")) * 1000);
+            var until = (int)(ParseFloat(FindSubMatch(modifier, "waitUntil")) * 1000);
             return (wait, until);
         }
 
-        private static float ExtractMaxWaitModifier(Match match, ref string original)
+        private static int ExtractMaxWaitModifier(Match match, ref string original)
         {
             var modifier = FindSubMatch(match, "maxWaitModifier");
             if (modifier == default)
@@ -160,7 +159,7 @@ namespace SomethingNeedDoing.Grammar
 
             original = original.Replace(modifier.Text, string.Empty);
 
-            return ParseFloat(FindSubMatch(match, "maxWait"));
+            return (int)(ParseFloat(FindSubMatch(modifier, "maxWait")) * 1000);
         }
 
         private static bool ExtractUnsafeModifier(Match match, ref string original)

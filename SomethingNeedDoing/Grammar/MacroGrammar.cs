@@ -51,10 +51,11 @@ namespace SomethingNeedDoing.Grammar
         #region Parsers
 
         private static readonly Parser ActionParser =
-            (((Literal("/action") | Literal("/ac"))
-            & Whitespace & Identifier("actionName")).Named("command")
+            ((Literal("/action") | Literal("/ac"))
+            & Whitespace & Identifier("actionName")
             & Modifiers(WaitModifier, UnsafeModifier)
-            & EolWhitespaceOrComment).Named("actionCommand");
+            & EolWhitespaceOrComment)
+            .Named("actionCommand");
 
         private static readonly Parser ClickParser =
             (Literal("/click")
@@ -65,7 +66,7 @@ namespace SomethingNeedDoing.Grammar
 
         private static readonly Parser LoopParser =
             (Literal("/loop")
-            & Whitespace & Digits.Named("loopCount").Optional()
+            & (Whitespace & Digits.Named("loopCount")).Optional()
             & Modifiers(WaitModifier)
             & EolWhitespaceOrComment)
             .Named("loopCommand");
@@ -113,7 +114,9 @@ namespace SomethingNeedDoing.Grammar
             .Named("waitAddonCommand");
 
         private static readonly Parser NativeParser =
-            (('/' & AnyUntilEol).Named("text")
+            (('/' & Terminals.AnyChar
+                .Repeat().Until(Eol | (Whitespace & WaitModifier)))
+                .Named("text")
             & Modifiers(WaitModifier)
             & EolWhitespaceOrComment)
             .Named("nativeCommand");
@@ -127,9 +130,7 @@ namespace SomethingNeedDoing.Grammar
         /// </summary>
         public static Eto.Parse.Grammar Definition { get; } = new(
             Terminals.Start
-            & (Whitespace | ActionParser | ClickParser | LoopParser | RequireParser | SendParser | TargetParser | WaitParser | WaitAddonParser | RunmacroParser | Comment
-            //| NativeParser
-            )
+            & (Whitespace | ActionParser | ClickParser | LoopParser | RequireParser | SendParser | TargetParser | WaitParser | WaitAddonParser | RunmacroParser | Comment | NativeParser)
                 .Repeat(0).SeparatedBy(Terminals.Eol)
             & Terminals.End);
 

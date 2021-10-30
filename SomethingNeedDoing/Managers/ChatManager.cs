@@ -41,14 +41,14 @@ namespace SomethingNeedDoing.Managers
         /// </summary>
         /// <param name="message">The message to print.</param>
         public void PrintMessage(string message)
-            => Service.ChatGui.Print(message);
+            => Service.ChatGui.Print($"[SND] {message}");
 
         /// <summary>
         /// Print an error message.
         /// </summary>
         /// <param name="message">The message to print.</param>
         public void PrintError(string message)
-            => Service.ChatGui.PrintError(message);
+            => Service.ChatGui.PrintError($"[SND] {message}");
 
         /// <summary>
         /// Process a command through the chat box.

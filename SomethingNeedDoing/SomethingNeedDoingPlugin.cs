@@ -31,6 +31,7 @@ namespace SomethingNeedDoing
             Service.Address.Setup();
 
             Service.ChatManager = new ChatManager();
+            Service.EventFrameworkManager = new EventFrameworkManager();
             Service.MacroManager = new MacroManager();
 
             this.macroWindow = new();
@@ -56,10 +57,11 @@ namespace SomethingNeedDoing
             Service.Interface.UiBuilder.OpenConfigUi -= this.OnOpenConfigUi;
             Service.Interface.UiBuilder.Draw -= this.windowSystem.Draw;
 
-            this.windowSystem.RemoveAllWindows();
+            this.windowSystem?.RemoveAllWindows();
 
-            Service.MacroManager.Dispose();
-            Service.ChatManager.Dispose();
+            Service.MacroManager?.Dispose();
+            Service.EventFrameworkManager?.Dispose();
+            Service.ChatManager?.Dispose();
         }
 
         /// <summary>
