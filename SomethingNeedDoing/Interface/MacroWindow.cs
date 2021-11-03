@@ -286,7 +286,8 @@ namespace SomethingNeedDoing.Interface
             }
             catch (MacroSyntaxError ex)
             {
-                Service.ChatManager.PrintError($"Syntax error on line {ex.LineNumber + 1}");
+                var errorLine = node.Contents.Split('\n')[ex.LineNumber];
+                Service.ChatManager.PrintError($"Syntax error on line {ex.LineNumber + 1}: {errorLine}");
             }
         }
 

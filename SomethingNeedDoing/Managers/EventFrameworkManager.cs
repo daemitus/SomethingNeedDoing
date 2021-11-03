@@ -1,13 +1,9 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Channels;
 
-using Dalamud.Game;
 using Dalamud.Hooking;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using SomethingNeedDoing.CraftingData;
 
 namespace SomethingNeedDoing.Managers

@@ -25,7 +25,7 @@ namespace SomethingNeedDoing.Grammar
         private static readonly Parser AnyUntilEol = Terminals.AnyChar.Except(Terminals.Eol).Repeat(0).Until(Eol);
 
         private static readonly Parser Quote = Terminals.Set('"');
-        private static readonly Parser Ident = (Terminals.LetterOrDigit | "'").Repeat();
+        private static readonly Parser Ident = (Terminals.LetterOrDigit | "'" | "_").Repeat();
 
         private static readonly Parser Comment = (Terminals.Set('#') | "//") & AnyUntilEol.Named("comment");
         private static readonly Parser EolWhitespaceOrComment = OptWhitespace & Comment.Optional();

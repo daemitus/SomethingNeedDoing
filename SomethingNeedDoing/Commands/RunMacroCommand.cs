@@ -45,7 +45,8 @@ namespace SomethingNeedDoing.MacroCommands
             }
             catch (MacroSyntaxError ex)
             {
-                throw new MacroCommandError($"Syntax error on line {ex.LineNumber + 1}", ex);
+                var errorLine = macroNode.Contents.Split('\n')[ex.LineNumber];
+                throw new MacroCommandError($"Syntax error on line {ex.LineNumber + 1}: {errorLine}", ex);
             }
 
             await this.PerformWait(token);

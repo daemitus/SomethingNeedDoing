@@ -16,7 +16,7 @@ namespace SomethingNeedDoing.Exceptions
         public MacroSyntaxError(string message, int lineNumber, int index)
             : base(message)
         {
-            this.LineNumber = lineNumber;
+            this.LineNumber = lineNumber - 1;
             this.Index = index;
         }
 
