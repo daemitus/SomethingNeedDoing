@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 
 using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging;
 using ImGuiNET;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Managers;
@@ -286,8 +287,12 @@ namespace SomethingNeedDoing.Interface
             }
             catch (MacroSyntaxError ex)
             {
-                var errorLine = node.Contents.Split('\n')[ex.LineNumber];
-                Service.ChatManager.PrintError($"Syntax error on line {ex.LineNumber + 1}: {errorLine}");
+                Service.ChatManager.PrintError($"[SND] {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Service.ChatManager.PrintError($"[SND] Unexpected error");
+                PluginLog.Error(ex, "Unexpected error");
             }
         }
 

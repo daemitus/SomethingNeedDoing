@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The /require command.
@@ -15,6 +18,8 @@ namespace SomethingNeedDoing.MacroCommands
     {
         private const int StatusCheckMaxWait = 1000;
         private const int StatusCheckInterval = 250;
+
+        private static readonly Regex Regex = new(@"^/require\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly List<uint> statusIDs;
         private readonly int maxWait;
@@ -25,19 +30,39 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="text">Original text.</param>
         /// <param name="statusName">Status name.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
         /// <param name="maxWait">MaxWait value.</param>
-        public RequireCommand(string text, string statusName, int wait, int waitUntil, int maxWait)
-            : base(text, wait, waitUntil)
+        private RequireCommand(string text, string statusName, WaitModifier wait, MaxWaitModifier maxWait)
+            : base(text, wait)
         {
-            this.maxWait = maxWait == 0 ? StatusCheckMaxWait : maxWait;
-
             statusName = statusName.ToLowerInvariant();
             var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()!;
             this.statusIDs = sheet
                 .Where(row => row.Name.RawString.ToLowerInvariant() == statusName)
                 .Select(row => row.RowId)
                 .ToList()!;
+
+            this.maxWait = maxWait.Wait == 0
+                ? StatusCheckMaxWait
+                : maxWait.Wait;
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static RequireCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+            _ = MaxWaitModifier.TryParse(ref text, out var maxWaitModifier);
+
+            var match = Regex.Match(text);
+            if (!match.Success)
+                throw new MacroSyntaxError(text);
+
+            var nameValue = ExtractAndUnquote(match, "name");
+
+            return new RequireCommand(text, nameValue, waitModifier, maxWaitModifier);
         }
 
         /// <inheritdoc/>

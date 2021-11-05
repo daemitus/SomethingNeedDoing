@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The /waitaddon command.
@@ -15,6 +17,8 @@ namespace SomethingNeedDoing.MacroCommands
     {
         private const int AddonCheckMaxWait = 5000;
         private const int AddonCheckInterval = 500;
+
+        private static readonly Regex Regex = new(@"^/waitaddon\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly string addonName;
         private readonly int maxWait;
@@ -25,13 +29,33 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="text">Original text.</param>
         /// <param name="addonName">Addon name.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
         /// <param name="maxWait">MaxWait value.</param>
-        public WaitAddonCommand(string text, string addonName, int wait, int waitUntil, int maxWait)
-            : base(text, wait, waitUntil)
+        private WaitAddonCommand(string text, string addonName, WaitModifier wait, MaxWaitModifier maxWait)
+            : base(text, wait)
         {
             this.addonName = addonName;
-            this.maxWait = maxWait == 0 ? AddonCheckMaxWait : maxWait;
+            this.maxWait = maxWait.Wait == 0
+                ? AddonCheckMaxWait
+                : maxWait.Wait;
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static WaitAddonCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+            _ = MaxWaitModifier.TryParse(ref text, out var maxWaitModifier);
+
+            var match = Regex.Match(text);
+            if (!match.Success)
+                throw new MacroSyntaxError(text);
+
+            var nameValue = ExtractAndUnquote(match, "name");
+
+            return new WaitAddonCommand(text, nameValue, waitModifier, maxWaitModifier);
         }
 
         /// <inheritdoc/>

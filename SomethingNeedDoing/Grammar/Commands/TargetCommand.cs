@@ -1,17 +1,21 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The /target command.
     /// </summary>
     internal class TargetCommand : MacroCommand
     {
+        private static readonly Regex Regex = new(@"^/target\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private readonly string targetName;
 
         /// <summary>
@@ -20,11 +24,28 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="text">Original text.</param>
         /// <param name="targetName">Target name.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
-        public TargetCommand(string text, string targetName, int wait, int waitUntil)
-            : base(text, wait, waitUntil)
+        private TargetCommand(string text, string targetName, WaitModifier wait)
+            : base(text, wait)
         {
             this.targetName = targetName.ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static TargetCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+
+            var match = Regex.Match(text);
+            if (!match.Success)
+                throw new MacroSyntaxError(text);
+
+            var nameValue = ExtractAndUnquote(match, "name");
+
+            return new TargetCommand(text, nameValue, waitModifier);
         }
 
         /// <inheritdoc/>

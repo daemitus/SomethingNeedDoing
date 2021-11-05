@@ -1,17 +1,21 @@
 ﻿using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The /runmacro command.
     /// </summary>
     internal class RunMacroCommand : MacroCommand
     {
+        private static readonly Regex Regex = new(@"^/runmacro\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private readonly string macroName;
 
         /// <summary>
@@ -20,11 +24,28 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="text">Original text.</param>
         /// <param name="macroName">Macro name.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
-        public RunMacroCommand(string text, string macroName, int wait, int waitUntil)
-            : base(text, wait, waitUntil)
+        private RunMacroCommand(string text, string macroName, WaitModifier wait)
+            : base(text, wait)
         {
             this.macroName = macroName;
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static RunMacroCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+
+            var match = Regex.Match(text);
+            if (!match.Success)
+                throw new MacroSyntaxError(text);
+
+            var nameValue = ExtractAndUnquote(match, "name");
+
+            return new RunMacroCommand(text, nameValue, waitModifier);
         }
 
         /// <inheritdoc/>
@@ -39,15 +60,7 @@ namespace SomethingNeedDoing.MacroCommands
             if (macroNode == default)
                 throw new MacroCommandError("No macro with that name");
 
-            try
-            {
-                Service.MacroManager.EnqueueMacro(macroNode);
-            }
-            catch (MacroSyntaxError ex)
-            {
-                var errorLine = macroNode.Contents.Split('\n')[ex.LineNumber];
-                throw new MacroCommandError($"Syntax error on line {ex.LineNumber + 1}: {errorLine}", ex);
-            }
+            Service.MacroManager.EnqueueMacro(macroNode);
 
             await this.PerformWait(token);
         }

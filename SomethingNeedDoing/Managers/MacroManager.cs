@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar;
-using SomethingNeedDoing.MacroCommands;
+using SomethingNeedDoing.Grammar.Commands;
 
 namespace SomethingNeedDoing.Managers
 {
@@ -35,7 +35,7 @@ namespace SomethingNeedDoing.Managers
                 this.loggedInWaiter.Set();
 
             // Start the loop.
-            Task.Run(this.EventLoop);
+            Task.Factory.StartNew(this.EventLoop, TaskCreationOptions.LongRunning);
         }
 
         /// <summary>

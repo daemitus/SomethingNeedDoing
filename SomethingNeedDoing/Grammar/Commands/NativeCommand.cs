@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// A command handled by the game.
@@ -15,10 +16,21 @@ namespace SomethingNeedDoing.MacroCommands
         /// </summary>
         /// <param name="text">Original text.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
-        public NativeCommand(string text, int wait, int waitUntil)
-            : base(text, wait, waitUntil)
+        private NativeCommand(string text, WaitModifier wait)
+            : base(text, wait)
         {
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static NativeCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+
+            return new NativeCommand(text, waitModifier);
         }
 
         /// <inheritdoc/>

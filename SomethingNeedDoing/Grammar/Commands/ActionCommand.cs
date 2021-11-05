@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The /action command.
@@ -14,6 +16,7 @@ namespace SomethingNeedDoing.MacroCommands
     {
         private const int SafeCraftMaxWait = 5000;
 
+        private static readonly Regex Regex = new(@"^/(?:ac|action)\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly HashSet<string> CraftingActionNames = new();
 
         private readonly string actionName;
@@ -30,13 +33,31 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="text">Original text.</param>
         /// <param name="actionName">Action name.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
-        /// <param name="safely">Execute safely.</param>
-        public ActionCommand(string text, string actionName, int wait, int waitUntil, bool safely)
-            : base(text, wait, waitUntil)
+        /// <param name="safely">Perform the action safely.</param>
+        private ActionCommand(string text, string actionName, WaitModifier wait, bool safely)
+            : base(text, wait.Wait, wait.Until)
         {
             this.actionName = actionName.ToLowerInvariant();
             this.safely = safely;
+        }
+
+        /// <summary>
+        /// Parse the text as a command.
+        /// </summary>
+        /// <param name="text">Text to parse.</param>
+        /// <returns>A parsed command.</returns>
+        public static ActionCommand Parse(string text)
+        {
+            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+            var hasUnsafe = UnsafeModifier.TryParse(ref text, out var _);
+
+            var match = Regex.Match(text);
+            if (!match.Success)
+                throw new MacroSyntaxError(text);
+
+            var nameValue = ExtractAndUnquote(match, "name");
+
+            return new ActionCommand(text, nameValue, waitModifier, !hasUnsafe);
         }
 
         /// <inheritdoc/>

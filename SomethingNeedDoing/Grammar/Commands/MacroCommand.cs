@@ -1,29 +1,41 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
+using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.MacroCommands
+namespace SomethingNeedDoing.Grammar.Commands
 {
     /// <summary>
     /// The base command other commands inherit from.
     /// </summary>
     internal abstract class MacroCommand
     {
-        private static readonly Random Random = new();
+        private static readonly Random Rand = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MacroCommand"/> class.
         /// </summary>
         /// <param name="text">Original line text.</param>
         /// <param name="wait">Wait value.</param>
-        /// <param name="waitUntil">WaitUntil value.</param>
-        public MacroCommand(string text, int wait, int waitUntil)
+        protected MacroCommand(string text, WaitModifier wait)
+            : this(text, wait.Wait, wait.Until)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MacroCommand"/> class.
+        /// </summary>
+        /// <param name="text">Original line text.</param>
+        /// <param name="wait">Wait value.</param>
+        /// <param name="until">WaitUntil value.</param>
+        protected MacroCommand(string text, int wait, int until)
         {
             this.Text = text;
             this.Wait = wait;
-            this.WaitUntil = waitUntil;
+            this.WaitUntil = until;
 
             if (this.WaitUntil > 0 && this.WaitUntil < this.Wait)
                 throw new ArgumentException("WaitUntil must not be larger than the Wait value");
@@ -56,6 +68,23 @@ namespace SomethingNeedDoing.MacroCommands
         /// <param name="token">Async cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public abstract Task Execute(CancellationToken token);
+
+        /// <summary>
+        /// Extract a match group and unquote if necessary.
+        /// </summary>
+        /// <param name="match">Match group.</param>
+        /// <param name="groupName">Group name.</param>
+        /// <returns>Extracted and unquoted group value.</returns>
+        protected static string ExtractAndUnquote(Match match, string groupName)
+        {
+            var group = match.Groups[groupName];
+            var groupValue = group.Value;
+
+            if (groupValue.StartsWith('"') && groupValue.EndsWith('"'))
+                groupValue = groupValue.Trim('"');
+
+            return groupValue;
+        }
 
         /// <summary>
         /// Perform a wait given the values in <see cref="Wait"/> and <see cref="WaitUntil"/>.
@@ -95,7 +124,7 @@ namespace SomethingNeedDoing.MacroCommands
             }
             else
             {
-                var value = Random.Next(wait, until);
+                var value = Rand.Next(wait, until);
                 sleep = TimeSpan.FromMilliseconds(value);
                 PluginLog.Debug($"Sleeping for {sleep.TotalMilliseconds} millis ({wait} to {until})");
             }
