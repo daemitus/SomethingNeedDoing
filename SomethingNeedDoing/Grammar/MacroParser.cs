@@ -22,7 +22,7 @@ namespace SomethingNeedDoing.Grammar
 
             while ((line = reader.ReadLine()) != null)
             {
-                line = line.Trim().ToLowerInvariant();
+                line = line.Trim();
 
                 // Empty
                 if (line.Length == 0)
@@ -38,6 +38,7 @@ namespace SomethingNeedDoing.Grammar
                     ? line[..firstSpace]
                     : line;
 
+                commandText = commandText.ToLowerInvariant();
                 yield return commandText switch
                 {
                     "/ac" => ActionCommand.Parse(line),
