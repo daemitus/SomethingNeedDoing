@@ -52,7 +52,6 @@ namespace SomethingNeedDoing.Managers
                     var dataType = (ActionCategory)Marshal.ReadInt32(dataPtr, 0);
                     if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
                     {
-                        PluginLog.Information($"EVENT FRAMEWORK {dataType}");
                         this.CraftingData = Marshal.PtrToStructure<CraftingState>(dataPtr);
                         this.DataAvailableWaiter.Set();
                     }

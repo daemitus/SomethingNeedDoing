@@ -53,7 +53,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
             var untilValue = untilGroup.Success ? untilGroup.Value : "0";
             var until = (int)(float.Parse(untilValue, CultureInfo.InvariantCulture) * 1000);
 
-            if (until > 0 && wait < until)
+            if (wait > until && until > 0)
                 throw new ArgumentException("Wait value cannot be lower than the until value");
 
             command = new WaitModifier(wait, until);

@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,12 +39,17 @@ namespace SomethingNeedDoing.Grammar.Commands
                 throw new MacroSyntaxError(text);
 
             var waitGroup = match.Groups["wait"];
-            var waitValue = (int)(float.Parse(waitGroup.Value, CultureInfo.InvariantCulture) * 1000);
+            var waitValue = waitGroup.Value;
+            var wait = (int)(float.Parse(waitValue, CultureInfo.InvariantCulture) * 1000);
 
             var untilGroup = match.Groups["until"];
-            var untilValue = (int)(float.Parse(untilGroup.Value, CultureInfo.InvariantCulture) * 1000);
+            var untilValue = untilGroup.Success ? untilGroup.Value : "0";
+            var until = (int)(float.Parse(untilValue, CultureInfo.InvariantCulture) * 1000);
 
-            return new WaitCommand(text, waitValue, untilValue);
+            if (wait > until && until > 0)
+                throw new ArgumentException("Wait value cannot be lower than the until value");
+
+            return new WaitCommand(text, wait, until);
         }
 
         /// <inheritdoc/>
