@@ -27,7 +27,7 @@ namespace SomethingNeedDoing.Grammar.Commands
         private LoopCommand(string text, int loopCount, WaitModifier wait)
             : base(text, wait)
         {
-            this.loopsRemaining = loopCount == 0 ? int.MaxValue : loopCount;
+            this.loopsRemaining = loopCount >= 0 ? loopCount : int.MaxValue;
         }
 
         /// <summary>

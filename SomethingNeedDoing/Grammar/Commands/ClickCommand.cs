@@ -56,7 +56,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             try
             {
-                Click.SendClick(this.clickName);
+                Click.SendClick(this.clickName.ToLowerInvariant());
             }
             catch (ClickNotFoundError)
             {
