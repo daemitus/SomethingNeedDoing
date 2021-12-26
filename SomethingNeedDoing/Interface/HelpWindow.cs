@@ -145,6 +145,15 @@ namespace SomethingNeedDoing.Interface
                 }),
         };
 
+        private readonly (string Name, string Description, string? Example)[] cliData = new[]
+        {
+            ("help", "Show this window.", null),
+            ("run", "Run a macro, the name must be unique.", "/pcraft run MyMacro"),
+            ("pause", "Pause the currently executing macro.", null),
+            ("resume", "Resume the currently paused macro.", null),
+            ("stop", "Clear the currently executing macro list.", null),
+        };
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HelpWindow"/> class.
         /// </summary>
@@ -179,6 +188,17 @@ namespace SomethingNeedDoing.Interface
                     ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
 
                     this.DrawModifiers();
+
+                    ImGui.EndChild();
+
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItem("CLI"))
+                {
+                    ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
+
+                    this.DrawCli();
 
                     ImGui.EndChild();
 
@@ -237,6 +257,31 @@ namespace SomethingNeedDoing.Interface
                 ImGui.Text("- Examples:");
                 foreach (var example in examples)
                     ImGui.Text($"  - {example}");
+
+                ImGui.PopStyleColor();
+
+                ImGui.Separator();
+            }
+
+            ImGui.PopFont();
+        }
+
+        private void DrawCli()
+        {
+            ImGui.PushFont(UiBuilder.MonoFont);
+
+            foreach (var (name, desc, example) in this.cliData)
+            {
+                ImGui.Text($"/pcraft {name}");
+
+                ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+
+                ImGui.TextWrapped($"- Description: {desc}");
+
+                if (example != null)
+                {
+                    ImGui.Text($"- Example: {example}");
+                }
 
                 ImGui.PopStyleColor();
 

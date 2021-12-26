@@ -217,7 +217,7 @@ namespace SomethingNeedDoing.Managers
         /// Pause macro execution.
         /// </summary>
         /// <param name="pauseAtLoop">Pause at the next loop instead.</param>
-        public void Pause(bool pauseAtLoop)
+        public void Pause(bool pauseAtLoop = false)
         {
             if (pauseAtLoop)
                 this.PauseAtLoop ^= pauseAtLoop;

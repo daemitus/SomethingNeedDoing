@@ -1,8 +1,10 @@
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using SomethingNeedDoing.Interface;
 using SomethingNeedDoing.Managers;
+using System.Linq;
 
 namespace SomethingNeedDoing
 {
@@ -83,7 +85,66 @@ namespace SomethingNeedDoing
 
         private void OnChatCommand(string command, string arguments)
         {
-            this.macroWindow.Toggle();
+            arguments = arguments.Trim();
+
+            if (arguments == string.Empty)
+            {
+                this.macroWindow.Toggle();
+                return;
+            }
+
+            if (arguments.StartsWith("run "))
+            {
+                var macroName = arguments[9..].Trim().Trim('"');
+                var nodes = Service.Configuration.GetAllNodes()
+                    .OfType<MacroNode>()
+                    .Where(node => node.Name.Trim() == macroName)
+                    .ToArray();
+
+                if (nodes.Length == 0)
+                {
+                    Service.ChatManager.PrintError("No macros match that name");
+                    return;
+                }
+                else if (nodes.Length > 1)
+                {
+                    Service.ChatManager.PrintError("More than one macro matches that name");
+                    return;
+                }
+                else
+                {
+                    var node = nodes[0];
+                    Service.ChatManager.PrintMessage($"Running macro \"{macroName}\"");
+                    Service.MacroManager.EnqueueMacro(node);
+                    return;
+                }
+            }
+
+            if (arguments.StartsWith("pause"))
+            {
+                Service.ChatManager.PrintMessage("Pausing");
+                Service.MacroManager.Pause();
+                return;
+            }
+
+            if (arguments.StartsWith("resume"))
+            {
+                Service.ChatManager.PrintMessage("Resuming");
+                Service.MacroManager.Resume();
+                return;
+            }
+
+            if (arguments.StartsWith("stop"))
+            {
+                Service.ChatManager.PrintMessage($"Stopping");
+                Service.MacroManager.Clear();
+            }
+
+            if (arguments.StartsWith("help"))
+            {
+                this.OpenHelpWindow();
+                return;
+            }
         }
     }
 }

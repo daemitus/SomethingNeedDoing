@@ -66,7 +66,10 @@ namespace SomethingNeedDoing.Grammar.Commands
                 this.loopsRemaining--;
 
                 if (this.echo)
-                    Service.ChatGui.Print($"{this.loopsRemaining} loops remaining");
+                {
+                    var noun = this.loopsRemaining == 1 ? "loop" : "loops";
+                    Service.ChatManager.PrintMessage($"{this.loopsRemaining} {noun} remaining");
+                }
 
                 if (this.loopsRemaining <= 0)
                     return;
