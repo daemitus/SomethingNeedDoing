@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 
@@ -21,6 +23,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
         private readonly string actionName;
         private readonly bool safely;
+        private readonly string condition;
 
         static ActionCommand()
         {
@@ -34,11 +37,13 @@ namespace SomethingNeedDoing.Grammar.Commands
         /// <param name="actionName">Action name.</param>
         /// <param name="wait">Wait value.</param>
         /// <param name="safely">Perform the action safely.</param>
-        private ActionCommand(string text, string actionName, WaitModifier wait, bool safely)
+        /// <param name="condition">Required crafting condition.</param>
+        private ActionCommand(string text, string actionName, WaitModifier wait, bool safely, string condition)
             : base(text, wait.Wait, wait.Until)
         {
             this.actionName = actionName.ToLowerInvariant();
             this.safely = safely;
+            this.condition = condition.ToLowerInvariant();
         }
 
         /// <summary>
@@ -49,7 +54,8 @@ namespace SomethingNeedDoing.Grammar.Commands
         public static ActionCommand Parse(string text)
         {
             _ = WaitModifier.TryParse(ref text, out var waitModifier);
-            var hasUnsafe = UnsafeModifier.TryParse(ref text, out var _);
+            _ = UnsafeModifier.TryParse(ref text, out var unsafeModifier);
+            _ = ConditionModifier.TryParse(ref text, out var conditionModifier);
 
             var match = Regex.Match(text);
             if (!match.Success)
@@ -57,13 +63,19 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             var nameValue = ExtractAndUnquote(match, "name");
 
-            return new ActionCommand(text, nameValue, waitModifier, !hasUnsafe);
+            return new ActionCommand(text, nameValue, waitModifier, !unsafeModifier.IsUnsafe, conditionModifier.Condition);
         }
 
         /// <inheritdoc/>
         public async override Task Execute(CancellationToken token)
         {
             PluginLog.Debug($"Executing: {this.Text}");
+
+            if (!HasCondition(this.condition))
+            {
+                PluginLog.Debug($"Condition skip: {this.Text}");
+                return;
+            }
 
             if (IsCraftingAction(this.actionName))
             {
@@ -87,6 +99,23 @@ namespace SomethingNeedDoing.Grammar.Commands
 
         private static bool IsCraftingAction(string name)
             => CraftingActionNames.Contains(name);
+
+        private static unsafe bool HasCondition(string condition)
+        {
+            if (condition == string.Empty)
+                return true;
+
+            var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
+            if (addon == IntPtr.Zero)
+                throw new MacroCommandError("Could not find Synthesis addon");
+
+            var textPtrPtr = addon + 0x260;
+            var textPtr = *(AtkTextNode**)textPtrPtr;
+
+            var text = textPtr->NodeText.ToString().ToLowerInvariant();
+
+            return text == condition;
+        }
 
         private static void PopulateCraftingNames()
         {

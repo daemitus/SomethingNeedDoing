@@ -43,6 +43,11 @@ namespace SomethingNeedDoing.Managers
         /// </summary>
         public LoopState State { get; private set; } = LoopState.Waiting;
 
+        /// <summary>
+        /// Gets a value indicating whether the manager should pause at the next /loop command.
+        /// </summary>
+        public bool PauseAtLoop { get; private set; } = false;
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -211,9 +216,25 @@ namespace SomethingNeedDoing.Managers
         /// <summary>
         /// Pause macro execution.
         /// </summary>
-        public void Pause()
+        /// <param name="pauseAtLoop">Pause at the next loop instead.</param>
+        public void Pause(bool pauseAtLoop)
         {
-            this.pausedWaiter.Reset();
+            if (pauseAtLoop)
+                this.PauseAtLoop ^= pauseAtLoop;
+            else
+                this.pausedWaiter.Reset();
+        }
+
+        /// <summary>
+        /// Pause at the next /loop.
+        /// </summary>
+        public void LoopCheckForPause()
+        {
+            if (this.PauseAtLoop)
+            {
+                this.PauseAtLoop = false;
+                this.pausedWaiter.Reset();
+            }
         }
 
         /// <summary>
@@ -250,7 +271,7 @@ namespace SomethingNeedDoing.Managers
             if (this.macroStack.Count == 0)
                 return Array.Empty<string>();
 
-            return this.macroStack.Peek().Steps.Select(s => s.Text).ToArray();
+            return this.macroStack.Peek().Steps.Select(s => s.ToString()).ToArray();
         }
 
         /// <summary>

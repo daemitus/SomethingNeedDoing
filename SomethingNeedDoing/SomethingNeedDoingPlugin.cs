@@ -15,6 +15,7 @@ namespace SomethingNeedDoing
 
         private readonly WindowSystem windowSystem;
         private readonly MacroWindow macroWindow;
+        private readonly HelpWindow helpWindow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SomethingNeedDoingPlugin"/> class.
@@ -26,6 +27,7 @@ namespace SomethingNeedDoing
 
             ClickLib.Click.Initialize();
 
+            Service.Plugin = this;
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
             Service.Address = new PluginAddressResolver();
             Service.Address.Setup();
@@ -35,8 +37,10 @@ namespace SomethingNeedDoing
             Service.MacroManager = new MacroManager();
 
             this.macroWindow = new();
+            this.helpWindow = new();
             this.windowSystem = new("SomethingNeedDoing");
             this.windowSystem.AddWindow(this.macroWindow);
+            this.windowSystem.AddWindow(this.helpWindow);
 
             Service.Interface.UiBuilder.Draw += this.windowSystem.Draw;
             Service.Interface.UiBuilder.OpenConfigUi += this.OnOpenConfigUi;
@@ -65,9 +69,12 @@ namespace SomethingNeedDoing
         }
 
         /// <summary>
-        /// Save the plugin configuration.
+        /// Open the help menu.
         /// </summary>
-        internal void SaveConfiguration() => Service.Interface.SavePluginConfig(Service.Configuration);
+        internal void OpenHelpWindow()
+        {
+            this.helpWindow.IsOpen = true;
+        }
 
         private void OnOpenConfigUi()
         {

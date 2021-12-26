@@ -304,7 +304,14 @@ namespace SomethingNeedDoing.Interface
         {
             ImGui.Text("Macro Queue");
 
-            var state = Enum.GetName(Service.MacroManager.State);
+            var state = Service.MacroManager.State;
+
+            var stateName = state switch
+            {
+                LoopState.NotLoggedIn => "Not Logged In",
+                LoopState.Running when Service.MacroManager.PauseAtLoop => "Pausing Soon",
+                _ => Enum.GetName(state),
+            };
 
             Vector4 buttonCol;
             unsafe
@@ -314,9 +321,13 @@ namespace SomethingNeedDoing.Interface
 
             ImGui.PushStyleColor(ImGuiCol.ButtonActive, buttonCol);
             ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonCol);
-            ImGui.Button($"{state}##LoopState", new Vector2(100, 0));
+            ImGui.Button($"{stateName}##LoopState", new Vector2(100, 0));
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+            if (ImGuiEx.IconButton(FontAwesomeIcon.QuestionCircle, "Help"))
+                Service.Plugin.OpenHelpWindow();
 
             if (Service.MacroManager.State == LoopState.NotLoggedIn)
             { /* Nothing to do */
@@ -340,8 +351,11 @@ namespace SomethingNeedDoing.Interface
             else if (Service.MacroManager.State == LoopState.Running)
             {
                 ImGui.SameLine();
-                if (ImGuiEx.IconButton(FontAwesomeIcon.Pause, "Pause"))
-                    Service.MacroManager.Pause();
+                if (ImGuiEx.IconButton(FontAwesomeIcon.Pause, "Pause (hold control to pause at next /loop)"))
+                {
+                    var ctrlHeld = ImGui.GetIO().KeyCtrl;
+                    Service.MacroManager.Pause(ctrlHeld);
+                }
 
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.TrashAlt, "Clear"))
@@ -448,36 +462,5 @@ namespace SomethingNeedDoing.Interface
         }
 
         #endregion
-
-        private static class ImGuiEx
-        {
-            public static bool IconButton(FontAwesomeIcon icon) => IconButton(icon);
-
-            public static bool IconButton(FontAwesomeIcon icon, string tooltip)
-            {
-                ImGui.PushFont(UiBuilder.IconFont);
-                var result = ImGui.Button($"{icon.ToIconString()}##{icon.ToIconString()}-{tooltip}");
-                ImGui.PopFont();
-
-                if (tooltip != null)
-                    TextTooltip(tooltip);
-
-                return result;
-            }
-
-            /// <summary>
-            /// Show a simple text tooltip if hovered.
-            /// </summary>
-            /// <param name="text">Text to display.</param>
-            public static void TextTooltip(string text)
-            {
-                if (ImGui.IsItemHovered())
-                {
-                    ImGui.BeginTooltip();
-                    ImGui.TextUnformatted(text);
-                    ImGui.EndTooltip();
-                }
-            }
-        }
     }
 }

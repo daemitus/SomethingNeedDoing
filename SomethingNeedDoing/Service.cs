@@ -16,6 +16,11 @@ namespace SomethingNeedDoing
     internal class Service
     {
         /// <summary>
+        /// Gets or sets the plugin itself.
+        /// </summary>
+        internal static SomethingNeedDoingPlugin Plugin { get; set; } = null!;
+
+        /// <summary>
         /// Gets or sets the plugin configuration.
         /// </summary>
         internal static SomethingNeedDoingConfiguration Configuration { get; set; } = null!;

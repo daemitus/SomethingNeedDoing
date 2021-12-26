@@ -46,6 +46,7 @@ namespace SomethingNeedDoing.Grammar
                     "/click" => ClickCommand.Parse(line),
                     "/loop" => LoopCommand.Parse(line),
                     "/require" => RequireCommand.Parse(line),
+                    "/requirestats" => RequireStatsCommand.Parse(line),
                     "/runmacro" => RunMacroCommand.Parse(line),
                     "/send" => SendCommand.Parse(line),
                     "/target" => TargetCommand.Parse(line),

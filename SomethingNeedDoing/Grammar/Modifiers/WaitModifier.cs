@@ -36,7 +36,9 @@ namespace SomethingNeedDoing.Grammar.Modifiers
         public static bool TryParse(ref string text, out WaitModifier command)
         {
             var match = Regex.Match(text);
-            if (!match.Success)
+            var success = match.Success;
+
+            if (!success)
             {
                 command = new WaitModifier(0, 0);
                 return false;
@@ -54,7 +56,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
             var until = (int)(float.Parse(untilValue, CultureInfo.InvariantCulture) * 1000);
 
             if (wait > until && until > 0)
-                throw new ArgumentException("Wait value cannot be lower than the until value");
+                throw new ArgumentException("Until value cannot be lower than the wait value");
 
             command = new WaitModifier(wait, until);
             return true;
