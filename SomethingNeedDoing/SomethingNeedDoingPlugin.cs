@@ -94,7 +94,7 @@ namespace SomethingNeedDoing
             }
             else if (arguments.StartsWith("run "))
             {
-                var macroName = arguments[9..].Trim().Trim('"');
+                var macroName = arguments[4..].Trim().Trim('"');
                 var nodes = Service.Configuration.GetAllNodes()
                     .OfType<MacroNode>()
                     .Where(node => node.Name.Trim() == macroName)
