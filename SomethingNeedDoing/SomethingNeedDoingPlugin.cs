@@ -92,8 +92,7 @@ namespace SomethingNeedDoing
                 this.macroWindow.Toggle();
                 return;
             }
-
-            if (arguments.StartsWith("run "))
+            else if (arguments.StartsWith("run "))
             {
                 var macroName = arguments[9..].Trim().Trim('"');
                 var nodes = Service.Configuration.GetAllNodes()
@@ -119,28 +118,25 @@ namespace SomethingNeedDoing
                     return;
                 }
             }
-
-            if (arguments.StartsWith("pause"))
+            else if (arguments.StartsWith("pause"))
             {
                 Service.ChatManager.PrintMessage("Pausing");
                 Service.MacroManager.Pause();
                 return;
             }
-
-            if (arguments.StartsWith("resume"))
+            else if (arguments.StartsWith("resume"))
             {
                 Service.ChatManager.PrintMessage("Resuming");
                 Service.MacroManager.Resume();
                 return;
             }
-
-            if (arguments.StartsWith("stop"))
+            else if (arguments.StartsWith("stop"))
             {
                 Service.ChatManager.PrintMessage($"Stopping");
                 Service.MacroManager.Clear();
+                return;
             }
-
-            if (arguments.StartsWith("help"))
+            else if (arguments.StartsWith("help"))
             {
                 this.OpenHelpWindow();
                 return;
