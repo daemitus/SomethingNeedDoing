@@ -63,14 +63,21 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             if (this.loopsRemaining != MaxLoops)
             {
-                if (this.echo && this.loopsRemaining >= 0)
+                if (this.echo)
                 {
-                    var noun = this.loopsRemaining == 1 ? "loop" : "loops";
-                    Service.ChatManager.PrintMessage($"{this.loopsRemaining} {noun} remaining");
+                    if (this.loopsRemaining == 0)
+                    {
+                        Service.ChatManager.PrintMessage($"No loops remaining");
+                    }
+                    else
+                    {
+                        var noun = this.loopsRemaining == 1 ? "loop" : "loops";
+                        Service.ChatManager.PrintMessage($"{this.loopsRemaining} {noun} remaining");
+                    }
                 }
 
                 this.loopsRemaining--;
-                if (this.loopsRemaining <= 0)
+                if (this.loopsRemaining < 0)
                     return;
             }
 
