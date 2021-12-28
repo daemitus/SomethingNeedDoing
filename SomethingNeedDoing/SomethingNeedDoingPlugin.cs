@@ -155,21 +155,8 @@ namespace SomethingNeedDoing
                                 .Where(s => !string.IsNullOrEmpty(s))
                                 .ToArray();
 
-                            if (parts.Length < 2)
-                            {
-                                Service.ChatManager.PrintError("Could not parse /loop command");
-                                return;
-                            }
-
-                            var number = parts[1];
-                            if (!number.All(char.IsNumber))
-                            {
-                                Service.ChatManager.PrintError("Loop command argument was not a number");
-                                return;
-                            }
-
-                            parts[1] = loopCount.ToString();
-                            lines[i] = string.Join(' ', parts);
+                            var echo = line.Contains("<echo>") ? "<echo>" : string.Empty;
+                            lines[i] = $"/loop {loopCount} {echo}";
                             node.Contents = string.Join('\n', lines);
                             Service.ChatManager.PrintMessage($"Running macro \"{macroName}\" {loopCount} times");
                             break;

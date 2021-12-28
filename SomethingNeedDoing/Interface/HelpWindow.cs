@@ -151,7 +151,7 @@ namespace SomethingNeedDoing.Interface
         {
             ("help", "Show this window.", null),
             ("run", "Run a macro, the name must be unique.", "/pcraft run MyMacro"),
-            ("run loop #", "Run a macro N times, the name must be unique. Only the last /loop in the macro is replaced", "/pcraft run loop 5 MyMacro"),
+            ("run loop #", "Run a macro and then loop N times, the name must be unique. Only the last /loop in the macro is replaced", "/pcraft run loop 5 MyMacro"),
             ("pause", "Pause the currently executing macro.", null),
             ("pause loop", "Pause the currently executing macro at the next /loop.", null),
             ("resume", "Resume the currently paused macro.", null),
