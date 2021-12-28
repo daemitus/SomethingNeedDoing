@@ -128,6 +128,8 @@ namespace SomethingNeedDoing.Interface
                 {
                     "/ac Observe <condition.poor>",
                     "/ac \"Precise Touch\" <condition.good>",
+                    "/ac \"Byregot's Blessing\" <condition.not.poor>",
+                    "/ac \"Byregot's Blessing\" <condition.!poor>",
                 }),
             (
                 "unsafe",
@@ -149,9 +151,12 @@ namespace SomethingNeedDoing.Interface
         {
             ("help", "Show this window.", null),
             ("run", "Run a macro, the name must be unique.", "/pcraft run MyMacro"),
+            ("run loop #", "Run a macro N times, the name must be unique. Only the last /loop in the macro is replaced", "/pcraft run loop 5 MyMacro"),
             ("pause", "Pause the currently executing macro.", null),
+            ("pause loop", "Pause the currently executing macro at the next /loop.", null),
             ("resume", "Resume the currently paused macro.", null),
             ("stop", "Clear the currently executing macro list.", null),
+            ("stop loop", "Clear the currently executing macro list at the next /loop.", null),
         };
 
         /// <summary>

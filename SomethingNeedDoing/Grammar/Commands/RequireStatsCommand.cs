@@ -99,9 +99,9 @@ namespace SomethingNeedDoing.Grammar.Commands
             }
 
             var hasStats =
-                uiState->PlayerState.Attributes[70] > this.requiredCraftsmanship &&
-                uiState->PlayerState.Attributes[71] > this.requiredControl &&
-                uiState->PlayerState.Attributes[11] > this.requiredCp;
+                uiState->PlayerState.Attributes[70] >= this.requiredCraftsmanship &&
+                uiState->PlayerState.Attributes[71] >= this.requiredControl &&
+                uiState->PlayerState.Attributes[11] >= this.requiredCp;
 
             return (stats, hasStats);
         }

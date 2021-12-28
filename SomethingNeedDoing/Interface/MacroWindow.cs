@@ -310,6 +310,7 @@ namespace SomethingNeedDoing.Interface
             {
                 LoopState.NotLoggedIn => "Not Logged In",
                 LoopState.Running when Service.MacroManager.PauseAtLoop => "Pausing Soon",
+                LoopState.Running when Service.MacroManager.StopAtLoop => "Stopping Soon",
                 _ => Enum.GetName(state),
             };
 
@@ -358,8 +359,11 @@ namespace SomethingNeedDoing.Interface
                 }
 
                 ImGui.SameLine();
-                if (ImGuiEx.IconButton(FontAwesomeIcon.TrashAlt, "Clear"))
-                    Service.MacroManager.Clear();
+                if (ImGuiEx.IconButton(FontAwesomeIcon.Stop, "Stop (hold control to stop at next /loop)"))
+                {
+                    var ctrlHeld = ImGui.GetIO().KeyCtrl;
+                    Service.MacroManager.Stop(ctrlHeld);
+                }
             }
 
             ImGui.PushItemWidth(-1);

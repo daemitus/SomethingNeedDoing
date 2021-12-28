@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace SomethingNeedDoing.Grammar.Modifiers
 {
@@ -9,17 +7,23 @@ namespace SomethingNeedDoing.Grammar.Modifiers
     /// </summary>
     internal class ConditionModifier : MacroModifier
     {
-        private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<name>[a-zA-Z]+)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<name>[a-zA-Z]+)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private ConditionModifier(string condition)
+        private ConditionModifier(string condition, bool negated)
         {
             this.Condition = condition;
+            this.Negated = negated;
         }
 
         /// <summary>
         /// Gets the required condition name.
         /// </summary>
         public string Condition { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the condition check should be negated.
+        /// </summary>
+        public bool Negated { get; }
 
         /// <summary>
         /// Parse the text as a modifier.
@@ -38,11 +42,13 @@ namespace SomethingNeedDoing.Grammar.Modifiers
                 text = text.Remove(group.Index, group.Length);
 
                 var conditionName = match.Groups["name"].Value.ToLowerInvariant();
-                command = new ConditionModifier(conditionName);
+                var negated = match.Groups["not"].Success;
+
+                command = new ConditionModifier(conditionName, negated);
                 return true;
             }
 
-            command = new ConditionModifier(string.Empty);
+            command = new ConditionModifier(string.Empty, false);
             return false;
         }
     }

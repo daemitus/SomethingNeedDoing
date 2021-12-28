@@ -86,6 +86,7 @@ namespace SomethingNeedDoing.Grammar.Commands
             await this.PerformWait(token);
 
             Service.MacroManager.LoopCheckForPause();
+            Service.MacroManager.LoopCheckForStop();
         }
     }
 }

@@ -94,7 +94,29 @@ namespace SomethingNeedDoing
             }
             else if (arguments.StartsWith("run "))
             {
-                var macroName = arguments[4..].Trim().Trim('"');
+                arguments = arguments[4..].Trim();
+
+                var loopCount = 0u;
+                if (arguments.StartsWith("loop "))
+                {
+                    arguments = arguments[5..].Trim();
+                    var nextSpace = arguments.IndexOf(' ');
+                    if (nextSpace == -1)
+                    {
+                        Service.ChatManager.PrintError("Could not determine loop count");
+                        return;
+                    }
+
+                    if (!uint.TryParse(arguments[..nextSpace], out loopCount))
+                    {
+                        Service.ChatManager.PrintError("Could not parse loop count");
+                        return;
+                    }
+
+                    arguments = arguments[(nextSpace + 1)..].Trim();
+                }
+
+                var macroName = arguments.Trim('"');
                 var nodes = Service.Configuration.GetAllNodes()
                     .OfType<MacroNode>()
                     .Where(node => node.Name.Trim() == macroName)
@@ -105,38 +127,94 @@ namespace SomethingNeedDoing
                     Service.ChatManager.PrintError("No macros match that name");
                     return;
                 }
-                else if (nodes.Length > 1)
+
+                if (nodes.Length > 1)
                 {
                     Service.ChatManager.PrintError("More than one macro matches that name");
                     return;
                 }
+
+                var node = nodes[0];
+
+                if (loopCount > 0)
+                {
+                    // Clone a new node so the modification doesn't save.
+                    node = new MacroNode()
+                    {
+                        Name = node.Name,
+                        Contents = node.Contents,
+                    };
+
+                    var lines = node.Contents.Split('\r', '\n');
+                    for (var i = lines.Length - 1; i >= 0; i--)
+                    {
+                        var line = lines[i].Trim();
+                        if (line.StartsWith("/loop"))
+                        {
+                            var parts = line.Split()
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToArray();
+
+                            if (parts.Length < 2)
+                            {
+                                Service.ChatManager.PrintError("Could not parse /loop command");
+                                return;
+                            }
+
+                            var number = parts[1];
+                            if (!number.All(char.IsNumber))
+                            {
+                                Service.ChatManager.PrintError("Loop command argument was not a number");
+                                return;
+                            }
+
+                            parts[1] = loopCount.ToString();
+                            lines[i] = string.Join(' ', parts);
+                            node.Contents = string.Join('\n', lines);
+                            Service.ChatManager.PrintMessage($"Running macro \"{macroName}\" {loopCount} times");
+                            break;
+                        }
+                    }
+                }
                 else
                 {
-                    var node = nodes[0];
                     Service.ChatManager.PrintMessage($"Running macro \"{macroName}\"");
-                    Service.MacroManager.EnqueueMacro(node);
-                    return;
                 }
+
+                Service.MacroManager.EnqueueMacro(node);
+                return;
             }
-            else if (arguments.StartsWith("pause"))
+            else if (arguments == "pause")
             {
                 Service.ChatManager.PrintMessage("Pausing");
                 Service.MacroManager.Pause();
                 return;
             }
-            else if (arguments.StartsWith("resume"))
+            else if (arguments == "pause loop")
+            {
+                Service.ChatManager.PrintMessage("Pausing at next /loop");
+                Service.MacroManager.Pause(true);
+                return;
+            }
+            else if (arguments == "resume")
             {
                 Service.ChatManager.PrintMessage("Resuming");
                 Service.MacroManager.Resume();
                 return;
             }
-            else if (arguments.StartsWith("stop"))
+            else if (arguments == "stop")
             {
                 Service.ChatManager.PrintMessage($"Stopping");
-                Service.MacroManager.Clear();
+                Service.MacroManager.Stop();
                 return;
             }
-            else if (arguments.StartsWith("help"))
+            else if (arguments == "stop loop")
+            {
+                Service.ChatManager.PrintMessage($"Stopping at next /loop");
+                Service.MacroManager.Stop(true);
+                return;
+            }
+            else if (arguments == "help")
             {
                 this.OpenHelpWindow();
                 return;

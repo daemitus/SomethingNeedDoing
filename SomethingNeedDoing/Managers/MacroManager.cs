@@ -48,6 +48,11 @@ namespace SomethingNeedDoing.Managers
         /// </summary>
         public bool PauseAtLoop { get; private set; } = false;
 
+        /// <summary>
+        /// Gets a value indicating whether the manager should stop at the next loop.
+        /// </summary>
+        public bool StopAtLoop { get; private set; } = false;
+
         /// <inheritdoc/>
         public void Dispose()
         {
@@ -220,9 +225,14 @@ namespace SomethingNeedDoing.Managers
         public void Pause(bool pauseAtLoop = false)
         {
             if (pauseAtLoop)
+            {
                 this.PauseAtLoop ^= pauseAtLoop;
+                this.StopAtLoop = false;
+            }
             else
+            {
                 this.pausedWaiter.Reset();
+            }
         }
 
         /// <summary>
@@ -233,7 +243,7 @@ namespace SomethingNeedDoing.Managers
             if (this.PauseAtLoop)
             {
                 this.PauseAtLoop = false;
-                this.pausedWaiter.Reset();
+                this.Pause(false);
             }
         }
 
@@ -243,6 +253,35 @@ namespace SomethingNeedDoing.Managers
         public void Resume()
         {
             this.pausedWaiter.Set();
+        }
+
+        /// <summary>
+        /// Stop macro execution.
+        /// </summary>
+        /// <param name="stopAtLoop">Stop at the next loop instead.</param>
+        public void Stop(bool stopAtLoop = false)
+        {
+            if (stopAtLoop)
+            {
+                this.PauseAtLoop = false;
+                this.StopAtLoop ^= stopAtLoop;
+            }
+            else
+            {
+                this.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Stop at the next /loop.
+        /// </summary>
+        public void LoopCheckForStop()
+        {
+            if (this.StopAtLoop)
+            {
+                this.StopAtLoop = false;
+                this.Stop(false);
+            }
         }
 
         /// <summary>
