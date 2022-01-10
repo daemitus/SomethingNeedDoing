@@ -37,7 +37,9 @@ namespace SomethingNeedDoing
             this.EventFrameworkFunctionAddress = scanner.ScanText(EventFrameworkFunctionSignature);
 
             PluginLog.Verbose("===== SOMETHING NEED DOING =====");
+            PluginLog.Verbose($"{nameof(this.SendChatAddress)} {this.SendChatAddress.ToInt64():X}");
             PluginLog.Verbose($"{nameof(this.EventFrameworkAddress)} {this.EventFrameworkAddress.ToInt64():X}");
+            PluginLog.Verbose($"{nameof(this.EventFrameworkFunctionAddress)} {this.EventFrameworkFunctionAddress.ToInt64():X}");
         }
     }
 }

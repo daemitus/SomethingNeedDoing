@@ -231,7 +231,10 @@ namespace SomethingNeedDoing.Managers
             }
             else
             {
+                this.PauseAtLoop = false;
+                this.StopAtLoop = false;
                 this.pausedWaiter.Reset();
+                Service.ChatManager.Clear();
             }
         }
 
@@ -242,7 +245,6 @@ namespace SomethingNeedDoing.Managers
         {
             if (this.PauseAtLoop)
             {
-                this.PauseAtLoop = false;
                 this.Pause(false);
             }
         }
@@ -268,7 +270,11 @@ namespace SomethingNeedDoing.Managers
             }
             else
             {
-                this.Clear();
+                this.PauseAtLoop = false;
+                this.StopAtLoop = false;
+                this.pausedWaiter.Set();
+                this.macroStack.Clear();
+                Service.ChatManager.Clear();
             }
         }
 
@@ -279,18 +285,8 @@ namespace SomethingNeedDoing.Managers
         {
             if (this.StopAtLoop)
             {
-                this.StopAtLoop = false;
                 this.Stop(false);
             }
-        }
-
-        /// <summary>
-        /// Clear the executing macro list.
-        /// </summary>
-        public void Clear()
-        {
-            this.macroStack.Clear();
-            this.pausedWaiter.Set();
         }
 
         /// <summary>

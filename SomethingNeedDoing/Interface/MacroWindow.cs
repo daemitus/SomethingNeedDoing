@@ -347,7 +347,7 @@ namespace SomethingNeedDoing.Interface
 
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.TrashAlt, "Clear"))
-                    Service.MacroManager.Clear();
+                    Service.MacroManager.Stop();
             }
             else if (Service.MacroManager.State == LoopState.Running)
             {

@@ -59,6 +59,16 @@ namespace SomethingNeedDoing.Managers
             await this.chatBoxMessages.Writer.WriteAsync(message);
         }
 
+        /// <summary>
+        /// Clear the queue of messages to send to the chatbox.
+        /// </summary>
+        public void Clear()
+        {
+            var reader = this.chatBoxMessages.Reader;
+            while (reader.Count > 0 && reader.TryRead(out var _))
+                continue;
+        }
+
         private void FrameworkUpdate(Framework framework)
         {
             if (this.chatBoxMessages.Reader.TryRead(out var message))
