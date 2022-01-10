@@ -294,7 +294,12 @@ namespace SomethingNeedDoing.Managers
         /// </summary>
         public void Loop()
         {
-            this.macroStack.Peek().Loop();
+            if (this.macroStack.TryPeek(out var macro))
+            {
+                // While there should always be a macro present, the
+                // stack can be empty if it is cleared during a loop.
+                macro.Loop();
+            }
         }
 
         /// <summary>
