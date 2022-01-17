@@ -18,6 +18,7 @@ namespace SomethingNeedDoing.Grammar.Commands
         private static readonly Regex Regex = new(@"^/loop(?:\s+(?<count>\d+))?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private readonly bool echo;
+        private readonly int startingLoops;
         private int loopsRemaining;
 
         /// <summary>
@@ -30,7 +31,7 @@ namespace SomethingNeedDoing.Grammar.Commands
         private LoopCommand(string text, int loopCount, WaitModifier wait, EchoModifier echo)
             : base(text, wait)
         {
-            this.loopsRemaining = loopCount >= 0 ? loopCount : MaxLoops;
+            this.startingLoops = this.loopsRemaining = loopCount >= 0 ? loopCount : MaxLoops;
             this.echo = echo.PerformEcho;
         }
 
@@ -78,7 +79,10 @@ namespace SomethingNeedDoing.Grammar.Commands
 
                 this.loopsRemaining--;
                 if (this.loopsRemaining < 0)
+                {
+                    this.loopsRemaining = this.startingLoops;
                     return;
+                }
             }
 
             Service.MacroManager.Loop();
