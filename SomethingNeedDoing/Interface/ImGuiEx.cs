@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface;
+using Dalamud.Interface;
 using ImGuiNET;
 
 namespace SomethingNeedDoing.Interface
@@ -8,13 +8,6 @@ namespace SomethingNeedDoing.Interface
     /// </summary>
     internal static class ImGuiEx
     {
-        /// <summary>
-        /// An icon button.
-        /// </summary>
-        /// <param name="icon">Icon value.</param>
-        /// <returns>Result from ImGui.Button.</returns>
-        public static bool IconButton(FontAwesomeIcon icon) => IconButton(icon);
-
         /// <summary>
         /// An icon button.
         /// </summary>

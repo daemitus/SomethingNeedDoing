@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 using Dalamud.Interface;
@@ -159,6 +160,8 @@ namespace SomethingNeedDoing.Interface
             ("stop loop", "Clear the currently executing macro list at the next /loop.", null),
         };
 
+        private readonly List<string> clickNames;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HelpWindow"/> class.
         /// </summary>
@@ -170,6 +173,8 @@ namespace SomethingNeedDoing.Interface
             this.Size = new Vector2(400, 600);
             this.SizeCondition = ImGuiCond.FirstUseEver;
             this.RespectCloseHotkey = false;
+
+            this.clickNames = ClickLib.Click.GetClickNames();
         }
 
         /// <inheritdoc/>
@@ -177,43 +182,61 @@ namespace SomethingNeedDoing.Interface
         {
             if (ImGui.BeginTabBar("HelpTab"))
             {
-                if (ImGui.BeginTabItem("Commands"))
+                var tabs = new (string Title, Action Dele)[]
                 {
-                    ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
+                    ("Changelog", this.DrawChangelog),
+                    ("Commands", this.DrawCommands),
+                    ("Modifiers", this.DrawModifiers),
+                    ("CLI", this.DrawCli),
+                    ("Clicks", this.DrawClicks),
+                };
 
-                    this.DrawCommands();
-
-                    ImGui.EndChild();
-
-                    ImGui.EndTabItem();
-                }
-
-                if (ImGui.BeginTabItem("Modifiers"))
+                foreach (var (title, dele) in tabs)
                 {
-                    ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
+                    if (ImGui.BeginTabItem(title))
+                    {
+                        ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
 
-                    this.DrawModifiers();
+                        dele();
 
-                    ImGui.EndChild();
+                        ImGui.EndChild();
 
-                    ImGui.EndTabItem();
-                }
-
-                if (ImGui.BeginTabItem("CLI"))
-                {
-                    ImGui.BeginChild("scrolling", new Vector2(0, -1), false);
-
-                    this.DrawCli();
-
-                    ImGui.EndChild();
-
-                    ImGui.EndTabItem();
+                        ImGui.EndTabItem();
+                    }
                 }
 
                 ImGui.EndTabBar();
             }
 
             ImGui.EndChild();
+        }
+
+        private void DrawChangelog()
+        {
+            ImGui.PushFont(UiBuilder.MonoFont);
+
+            ImGui.Text("2022-01-16");
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped(
+                "- The help menu now has a /click listing.\n" +
+                "- Various quality increasing skills are skipped when at 100% HQ. Please open an issue if you encounter issues with this. " +
+                "- /loop # will reset after reaching the desired amount of loops. This allows for nested looping. You can test this with the following:\n" +
+                "    /echo 111 <wait.1>\n" +
+                "    /loop 1\n" +
+                "    /echo 222 <wait.1>\n" +
+                "    /loop 1\n" +
+                "    /echo 333 <wait.1>\n");
+            ImGui.PopStyleColor();
+            ImGui.Separator();
+
+            ImGui.Text("2022-01-01");
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped(
+                "- Various /pcraft commands have been added. View the help menu for more details.\n" +
+                "- There is also a help menu.\n");
+            ImGui.PopStyleColor();
+
+            ImGui.PopFont();
         }
 
         private void DrawCommands()
@@ -291,6 +314,21 @@ namespace SomethingNeedDoing.Interface
                 ImGui.PopStyleColor();
 
                 ImGui.Separator();
+            }
+
+            ImGui.PopFont();
+        }
+
+        private void DrawClicks()
+        {
+            ImGui.PushFont(UiBuilder.MonoFont);
+
+            ImGui.TextWrapped("Refer to https://github.com/daemitus/ClickLib/tree/master/ClickLib/Clicks for any details.");
+            ImGui.Separator();
+
+            foreach (var name in this.clickNames)
+            {
+                ImGui.Text($"/click {name}");
             }
 
             ImGui.PopFont();
