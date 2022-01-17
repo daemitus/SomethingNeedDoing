@@ -3,7 +3,7 @@
     /// <summary>
     /// Crafting condition types.
     /// </summary>
-    internal enum CraftingCondition : int
+    internal enum CraftingCondition : uint
     {
         /// <summary>
         /// Normal condition.
