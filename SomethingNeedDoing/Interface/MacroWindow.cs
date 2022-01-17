@@ -354,14 +354,18 @@ namespace SomethingNeedDoing.Interface
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Pause, "Pause (hold control to pause at next /loop)"))
                 {
-                    var ctrlHeld = ImGui.GetIO().KeyCtrl;
+                    var io = ImGui.GetIO();
+                    var ctrlHeld = io.KeyCtrl;
+
                     Service.MacroManager.Pause(ctrlHeld);
                 }
 
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Stop, "Stop (hold control to stop at next /loop)"))
                 {
-                    var ctrlHeld = ImGui.GetIO().KeyCtrl;
+                    var io = ImGui.GetIO();
+                    var ctrlHeld = io.KeyCtrl;
+
                     Service.MacroManager.Stop(ctrlHeld);
                 }
             }

@@ -90,6 +90,9 @@ namespace SomethingNeedDoing.Managers
                     if (!this.loggedInWaiter.WaitOne(0))
                     {
                         this.State = LoopState.NotLoggedIn;
+
+                        if (this.macroStack.Any())
+                            this.macroStack.Clear();
                     }
 
                     // Wait to be logged in
@@ -226,7 +229,7 @@ namespace SomethingNeedDoing.Managers
         {
             if (pauseAtLoop)
             {
-                this.PauseAtLoop ^= pauseAtLoop;
+                this.PauseAtLoop ^= true;
                 this.StopAtLoop = false;
             }
             else
@@ -266,7 +269,7 @@ namespace SomethingNeedDoing.Managers
             if (stopAtLoop)
             {
                 this.PauseAtLoop = false;
-                this.StopAtLoop ^= stopAtLoop;
+                this.StopAtLoop ^= true;
             }
             else
             {
