@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
@@ -132,20 +133,31 @@ namespace SomethingNeedDoing.Grammar.Commands
             if (addon == IntPtr.Zero)
                 throw new MacroCommandError("Could not find Synthesis addon");
 
-            var textPtrPtr = addon + 0x260;
-            var textPtr = *(AtkTextNode**)textPtrPtr;
-
-            var text = textPtr->NodeText.ToString().ToLowerInvariant();
+            var addonPtr = (AddonSynthesis*)addon;
+            var text = addonPtr->Condition->NodeText.ToString().ToLowerInvariant();
 
             return negated
                 ? text != condition
                 : text == condition;
         }
 
-        private static bool HasMaxedQuality()
+        private static unsafe bool HasMaxedQuality()
         {
-            var data = Service.EventFrameworkManager.CraftingData;
-            return data.CurrentStep > 0 && data.PercentHQ == 100;
+            var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
+            if (addon == IntPtr.Zero)
+                throw new MacroCommandError("Could not find Synthesis addon");
+
+            var addonPtr = (AddonSynthesis*)addon;
+            var stepText = addonPtr->StepNumber->NodeText.ToString().ToLowerInvariant();
+            var hqText = addonPtr->HQPercentage->NodeText.ToString().ToLowerInvariant();
+
+            if (!int.TryParse(stepText, out var step))
+                throw new MacroCommandError("Could not parse step number in the Synthesis addon");
+
+            if (!int.TryParse(hqText, out var percentHq))
+                throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
+
+            return step > 0 && percentHq == 100;
         }
 
         private static void PopulateCraftingNames()
