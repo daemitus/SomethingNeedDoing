@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -157,7 +157,7 @@ namespace SomethingNeedDoing.Grammar.Commands
             if (!int.TryParse(hqText, out var percentHq))
                 throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
 
-            return step > 0 && percentHq == 100;
+            return step > 1 && percentHq == 100;
         }
 
         private static void PopulateCraftingNames()
