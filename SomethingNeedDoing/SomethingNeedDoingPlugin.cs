@@ -1,10 +1,10 @@
+using System.Linq;
+
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
-using Dalamud.Logging;
 using Dalamud.Plugin;
 using SomethingNeedDoing.Interface;
 using SomethingNeedDoing.Managers;
-using System.Linq;
 
 namespace SomethingNeedDoing
 {

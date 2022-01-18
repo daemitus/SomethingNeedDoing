@@ -6,7 +6,7 @@ using System.Threading;
 
 using Dalamud.Game.ClientState.Keys;
 
-namespace SomethingNeedDoing
+namespace SomethingNeedDoing.Managers
 {
     /// <summary>
     /// Simulate pressing keyboard input.
