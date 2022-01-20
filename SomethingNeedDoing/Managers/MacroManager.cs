@@ -124,13 +124,13 @@ namespace SomethingNeedDoing.Managers
                 }
                 catch (OperationCanceledException)
                 {
-                    PluginLog.Verbose("Event loop has stopped");
+                    PluginLog.Verbose("Event loop has been cancelled");
                     this.State = LoopState.Stopped;
                     break;
                 }
                 catch (ObjectDisposedException)
                 {
-                    PluginLog.Verbose($"Event loop has stopped");
+                    PluginLog.Verbose("Event loop has been disposed");
                     this.State = LoopState.Stopped;
                     break;
                 }
