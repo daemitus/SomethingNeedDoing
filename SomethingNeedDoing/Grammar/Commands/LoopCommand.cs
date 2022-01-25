@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,7 +69,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             if (this.loopsRemaining != MaxLoops)
             {
-                if (this.echoMod.PerformEcho)
+                if (this.echoMod.PerformEcho || Service.Configuration.LoopEcho)
                 {
                     if (this.loopsRemaining == 0)
                     {

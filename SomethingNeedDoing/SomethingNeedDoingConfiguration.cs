@@ -33,6 +33,11 @@ namespace SomethingNeedDoing
         public bool LoopTotal { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to always echo /loop commands.
+        /// </summary>
+        public bool LoopEcho { get; set; } = false;
+
+        /// <summary>
         /// Loads the configuration.
         /// </summary>
         /// <param name="configDirectory">Configuration directory.</param>

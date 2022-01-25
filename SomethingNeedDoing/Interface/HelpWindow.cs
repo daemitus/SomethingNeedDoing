@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -264,6 +264,17 @@ namespace SomethingNeedDoing.Interface
 
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
+            ImGui.PopStyleColor();
+
+            var loopEcho = Service.Configuration.LoopEcho;
+            if (ImGui.Checkbox("Loop Echo", ref loopEcho))
+            {
+                Service.Configuration.LoopEcho = loopEcho;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped("- Loop commands will always have an <echo> tag applied.");
             ImGui.PopStyleColor();
 
             ImGui.PopFont();
