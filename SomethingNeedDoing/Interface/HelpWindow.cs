@@ -220,8 +220,8 @@ namespace SomethingNeedDoing.Interface
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped(
                 "- The help menu now has an options pane.\n" +
-                "- Added an option to disable skipping craft actions when not crafting.\n" +
-                "- Added an option to disable the automatic quality increasing action skip, when at 100% HQ.\n" +
+                "- Added an option to disable skipping craft actions when not crafting or at max progress.\n" +
+                "- Added an option to disable the automatic quality increasing action skip, when at max quality.\n" +
                 "- Added an option to treat /loop as the total iterations, rather than the amount to repeat.\n" +
                 "- Added an option to always treat /loop commands as having an <echo> modifier.\n");
             ImGui.PopStyleColor();
@@ -231,7 +231,7 @@ namespace SomethingNeedDoing.Interface
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped(
                 "- The help menu now has a /click listing.\n" +
-                "- Various quality increasing skills are skipped when at 100% HQ. Please open an issue if you encounter issues with this.\n" +
+                "- Various quality increasing skills are skipped when at max quality. Please open an issue if you encounter issues with this.\n" +
                 "- /loop # will reset after reaching the desired amount of loops. This allows for nested looping. You can test this with the following:\n" +
                 "    /echo 111 <wait.1>\n" +
                 "    /loop 1\n" +
