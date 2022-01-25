@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
+using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using SomethingNeedDoing.Exceptions;
 
 namespace SomethingNeedDoing.Grammar.Modifiers
 {
@@ -62,7 +62,10 @@ namespace SomethingNeedDoing.Grammar.Modifiers
 
             var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
             if (addon == IntPtr.Zero)
-                throw new MacroCommandError("Could not find Synthesis addon");
+            {
+                PluginLog.Debug("Could not find Synthesis addon");
+                return true;
+            }
 
             var addonPtr = (AddonSynthesis*)addon;
             var text = addonPtr->Condition->NodeText.ToString().ToLowerInvariant();

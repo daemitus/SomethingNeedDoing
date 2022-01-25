@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -83,20 +84,29 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             if (IsCraftingAction(this.actionName))
             {
-                if (Service.Configuration.CraftSkip && !IsCrafting())
+                if (Service.Configuration.CraftSkip)
                 {
-                    PluginLog.Debug($"Not crafting skip: {this.Text}");
+                    if (IsNotCrafting())
+                    {
+                        PluginLog.Debug($"Not crafting skip: {this.Text}");
+                        return;
+                    }
+
+                    if (HasMaxProgress())
+                    {
+                        PluginLog.Debug($"Max progress skip: {this.Text}");
+                        return;
+                    }
+                }
+
+                if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxQuality())
+                {
+                    PluginLog.Debug($"Max quality skip: {this.Text}");
                     return;
                 }
 
                 var dataWaiter = Service.EventFrameworkManager.DataAvailableWaiter;
                 dataWaiter.Reset();
-
-                if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
-                {
-                    PluginLog.Debug($"Quality skip: {this.Text}");
-                    return;
-                }
 
                 Service.ChatManager.SendMessage(this.Text);
 
@@ -107,27 +117,23 @@ namespace SomethingNeedDoing.Grammar.Commands
             }
             else
             {
-                // Buffs such as innovation and great strides fall under this.
-                if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
-                {
-                    PluginLog.Debug($"Quality skip: {this.Text}");
-                    return;
-                }
-
                 Service.ChatManager.SendMessage(this.Text);
 
                 await this.PerformWait(token);
             }
         }
 
+        private static bool IsCrafting()
+            => Service.Condition[ConditionFlag.Crafting] && !Service.Condition[ConditionFlag.PreparingToCraft];
+
+        private static bool IsNotCrafting()
+            => !IsCrafting();
+
         private static bool IsCraftingAction(string name)
             => CraftingActionNames.Contains(name);
 
         private static bool IsSkippableCraftingQualityAction(string name)
             => CraftingQualityActionNames.Contains(name);
-
-        private static bool IsCrafting()
-            => Service.Condition[ConditionFlag.Crafting];
 
         private static unsafe bool HasCondition(string condition, bool negated)
         {
@@ -146,11 +152,36 @@ namespace SomethingNeedDoing.Grammar.Commands
                 : text == condition;
         }
 
-        private static unsafe bool HasMaxedQuality()
+        private static unsafe bool HasMaxProgress()
         {
             var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
             if (addon == IntPtr.Zero)
-                throw new MacroCommandError("Could not find Synthesis addon");
+            {
+                PluginLog.Debug("Could not find Synthesis addon");
+                return false;
+            }
+
+            var addonPtr = (AddonSynthesis*)addon;
+            var progressText = addonPtr->CurrentProgress->NodeText.ToString().ToLowerInvariant();
+            var maxProgressText = addonPtr->MaxProgress->NodeText.ToString().ToLowerInvariant();
+
+            if (!int.TryParse(progressText, out var progress))
+                throw new MacroCommandError("Could not parse progress number in the Synthesis addon");
+
+            if (!int.TryParse(maxProgressText, out var maxProgress))
+                throw new MacroCommandError("Could not parse max progress number in the Synthesis addon");
+
+            return progress == maxProgress;
+        }
+
+        private static unsafe bool HasMaxQuality()
+        {
+            var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
+            if (addon == IntPtr.Zero)
+            {
+                PluginLog.Debug("Could not find Synthesis addon");
+                return false;
+            }
 
             var addonPtr = (AddonSynthesis*)addon;
             var stepText = addonPtr->StepNumber->NodeText.ToString().ToLowerInvariant();
