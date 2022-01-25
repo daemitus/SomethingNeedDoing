@@ -1,6 +1,7 @@
 using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
@@ -68,6 +69,12 @@ namespace SomethingNeedDoing
         /// </summary>
         [PluginService]
         internal static CommandManager CommandManager { get; private set; } = null!;
+
+        /// <summary>
+        /// Gets the Dalamud condition manager.
+        /// </summary>
+        [PluginService]
+        internal static Condition Condition { get; private set; } = null!;
 
         /// <summary>
         /// Gets the Dalamud data manager.

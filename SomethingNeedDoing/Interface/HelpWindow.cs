@@ -216,11 +216,22 @@ namespace SomethingNeedDoing.Interface
         {
             ImGui.PushFont(UiBuilder.MonoFont);
 
+            ImGui.Text("2022-01-25");
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped(
+                "- The help menu now has an options pane.\n" +
+                "- Added an option to disable skipping craft actions when not crafting.\n" +
+                "- Added an option to disable the automatic quality increasing action skip, when at 100% HQ.\n" +
+                "- Added an option to treat /loop as the total iterations, rather than the amount to repeat.\n" +
+                "- Added an option to always treat /loop commands as having an <echo> modifier.\n");
+            ImGui.PopStyleColor();
+            ImGui.Separator();
+
             ImGui.Text("2022-01-16");
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped(
                 "- The help menu now has a /click listing.\n" +
-                "- Various quality increasing skills are skipped when at 100% HQ. Please open an issue if you encounter issues with this. " +
+                "- Various quality increasing skills are skipped when at 100% HQ. Please open an issue if you encounter issues with this.\n" +
                 "- /loop # will reset after reaching the desired amount of loops. This allows for nested looping. You can test this with the following:\n" +
                 "    /echo 111 <wait.1>\n" +
                 "    /loop 1\n" +
@@ -243,6 +254,17 @@ namespace SomethingNeedDoing.Interface
         private void DrawOptions()
         {
             ImGui.PushFont(UiBuilder.MonoFont);
+
+            var craftSkip = Service.Configuration.CraftSkip;
+            if (ImGui.Checkbox("Craft Skip", ref craftSkip))
+            {
+                Service.Configuration.CraftSkip = craftSkip;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped("- Skip craft actions when not crafting.");
+            ImGui.PopStyleColor();
 
             var qualitySkip = Service.Configuration.QualitySkip;
             if (ImGui.Checkbox("Quality Skip", ref qualitySkip))

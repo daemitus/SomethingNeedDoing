@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 
@@ -84,6 +83,12 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             if (IsCraftingAction(this.actionName))
             {
+                if (Service.Configuration.CraftSkip && !IsCrafting())
+                {
+                    PluginLog.Debug($"Not crafting skip: {this.Text}");
+                    return;
+                }
+
                 var dataWaiter = Service.EventFrameworkManager.DataAvailableWaiter;
                 dataWaiter.Reset();
 
@@ -120,6 +125,9 @@ namespace SomethingNeedDoing.Grammar.Commands
 
         private static bool IsSkippableCraftingQualityAction(string name)
             => CraftingQualityActionNames.Contains(name);
+
+        private static bool IsCrafting()
+            => Service.Condition[ConditionFlag.Crafting];
 
         private static unsafe bool HasCondition(string condition, bool negated)
         {
