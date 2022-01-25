@@ -28,6 +28,11 @@ namespace SomethingNeedDoing
         public bool QualitySkip { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to count the /loop number as the total iterations, rather than the amount to loop.
+        /// </summary>
+        public bool LoopTotal { get; set; } = false;
+
+        /// <summary>
         /// Loads the configuration.
         /// </summary>
         /// <param name="configDirectory">Configuration directory.</param>

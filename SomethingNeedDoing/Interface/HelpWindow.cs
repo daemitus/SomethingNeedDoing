@@ -255,6 +255,17 @@ namespace SomethingNeedDoing.Interface
             ImGui.TextWrapped("- Skip quality increasing actions when the HQ chance is at 100%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
             ImGui.PopStyleColor();
 
+            var loopTotal = Service.Configuration.LoopTotal;
+            if (ImGui.Checkbox("Loop Total", ref loopTotal))
+            {
+                Service.Configuration.LoopTotal = loopTotal;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
+            ImGui.PopStyleColor();
+
             ImGui.PopFont();
         }
 

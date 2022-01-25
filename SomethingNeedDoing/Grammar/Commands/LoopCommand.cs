@@ -34,6 +34,9 @@ namespace SomethingNeedDoing.Grammar.Commands
             this.loopsRemaining = loopCount >= 0 ? loopCount : MaxLoops;
             this.startingLoops = this.loopsRemaining;
 
+            if (Service.Configuration.LoopTotal && this.loopsRemaining != 0 && this.loopsRemaining != MaxLoops)
+                this.loopsRemaining -= 1;
+
             this.echoMod = echo;
         }
 
