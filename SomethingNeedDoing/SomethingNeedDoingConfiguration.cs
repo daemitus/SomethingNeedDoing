@@ -23,6 +23,11 @@ namespace SomethingNeedDoing
         public FolderNode RootFolder { get; private set; } = new FolderNode { Name = "/" };
 
         /// <summary>
+        /// Gets or sets a value indicating whether to skip quality increasing actions when at 100% HQ chance.
+        /// </summary>
+        public bool QualitySkip { get; set; } = true;
+
+        /// <summary>
         /// Loads the configuration.
         /// </summary>
         /// <param name="configDirectory">Configuration directory.</param>

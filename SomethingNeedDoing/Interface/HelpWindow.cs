@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -185,6 +185,7 @@ namespace SomethingNeedDoing.Interface
                 var tabs = new (string Title, Action Dele)[]
                 {
                     ("Changelog", this.DrawChangelog),
+                    ("Options", this.DrawOptions),
                     ("Commands", this.DrawCommands),
                     ("Modifiers", this.DrawModifiers),
                     ("CLI", this.DrawCli),
@@ -234,6 +235,24 @@ namespace SomethingNeedDoing.Interface
             ImGui.TextWrapped(
                 "- Various /pcraft commands have been added. View the help menu for more details.\n" +
                 "- There is also a help menu.\n");
+            ImGui.PopStyleColor();
+
+            ImGui.PopFont();
+        }
+
+        private void DrawOptions()
+        {
+            ImGui.PushFont(UiBuilder.MonoFont);
+
+            var qualitySkip = Service.Configuration.QualitySkip;
+            if (ImGui.Checkbox("Quality Skip", ref qualitySkip))
+            {
+                Service.Configuration.QualitySkip = qualitySkip;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped("- Skip quality increasing actions when the HQ chance is at 100%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
             ImGui.PopStyleColor();
 
             ImGui.PopFont();

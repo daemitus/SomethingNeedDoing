@@ -87,7 +87,7 @@ namespace SomethingNeedDoing.Grammar.Commands
                 var dataWaiter = Service.EventFrameworkManager.DataAvailableWaiter;
                 dataWaiter.Reset();
 
-                if (IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
+                if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
                 {
                     PluginLog.Debug($"Quality skip: {this.Text}");
                     return;
@@ -103,7 +103,7 @@ namespace SomethingNeedDoing.Grammar.Commands
             else
             {
                 // Buffs such as innovation and great strides fall under this.
-                if (IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
+                if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxedQuality())
                 {
                     PluginLog.Debug($"Quality skip: {this.Text}");
                     return;
