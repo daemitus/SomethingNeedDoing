@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +17,7 @@ namespace SomethingNeedDoing.Grammar.Commands
         private const int MaxLoops = int.MaxValue;
         private static readonly Regex Regex = new(@"^/loop(?:\s+(?<count>\d+))?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private readonly bool echo;
+        private readonly EchoModifier echoMod;
         private readonly int startingLoops;
         private int loopsRemaining;
 
@@ -31,8 +31,10 @@ namespace SomethingNeedDoing.Grammar.Commands
         private LoopCommand(string text, int loopCount, WaitModifier wait, EchoModifier echo)
             : base(text, wait)
         {
-            this.startingLoops = this.loopsRemaining = loopCount >= 0 ? loopCount : MaxLoops;
-            this.echo = echo.PerformEcho;
+            this.loopsRemaining = loopCount >= 0 ? loopCount : MaxLoops;
+            this.startingLoops = this.loopsRemaining;
+
+            this.echoMod = echo;
         }
 
         /// <summary>
@@ -64,7 +66,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             if (this.loopsRemaining != MaxLoops)
             {
-                if (this.echo)
+                if (this.echoMod.PerformEcho)
                 {
                     if (this.loopsRemaining == 0)
                     {
@@ -78,6 +80,7 @@ namespace SomethingNeedDoing.Grammar.Commands
                 }
 
                 this.loopsRemaining--;
+
                 if (this.loopsRemaining < 0)
                 {
                     this.loopsRemaining = this.startingLoops;

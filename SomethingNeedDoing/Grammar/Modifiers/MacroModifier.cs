@@ -3,7 +3,7 @@
     /// <summary>
     /// Base class for modifiers.
     /// </summary>
-    internal class MacroModifier
+    internal abstract class MacroModifier
     {
     }
 }

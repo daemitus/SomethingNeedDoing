@@ -37,6 +37,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
             }
 
             command = new UnsafeModifier(success);
+
             return success;
         }
     }

@@ -1,4 +1,8 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
+
+using FFXIVClientStructs.FFXIV.Client.UI;
+using SomethingNeedDoing.Exceptions;
 
 namespace SomethingNeedDoing.Grammar.Modifiers
 {
@@ -9,21 +13,14 @@ namespace SomethingNeedDoing.Grammar.Modifiers
     {
         private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<name>[a-zA-Z]+)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        private readonly string condition;
+        private readonly bool negated;
+
         private ConditionModifier(string condition, bool negated)
         {
-            this.Condition = condition;
-            this.Negated = negated;
+            this.condition = condition;
+            this.negated = negated;
         }
-
-        /// <summary>
-        /// Gets the required condition name.
-        /// </summary>
-        public string Condition { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether the condition check should be negated.
-        /// </summary>
-        public bool Negated { get; }
 
         /// <summary>
         /// Parse the text as a modifier.
@@ -45,11 +42,34 @@ namespace SomethingNeedDoing.Grammar.Modifiers
                 var negated = match.Groups["not"].Success;
 
                 command = new ConditionModifier(conditionName, negated);
-                return true;
+            }
+            else
+            {
+                command = new ConditionModifier(string.Empty, false);
             }
 
-            command = new ConditionModifier(string.Empty, false);
-            return false;
+            return success;
+        }
+
+        /// <summary>
+        /// Check if the current crafting condition is active.
+        /// </summary>
+        /// <returns>A parsed command.</returns>
+        public unsafe bool HasCondition()
+        {
+            if (this.condition == string.Empty)
+                return true;
+
+            var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
+            if (addon == IntPtr.Zero)
+                throw new MacroCommandError("Could not find Synthesis addon");
+
+            var addonPtr = (AddonSynthesis*)addon;
+            var text = addonPtr->Condition->NodeText.ToString().ToLowerInvariant();
+
+            return this.negated
+                ? text != this.condition
+                : text == this.condition;
         }
     }
 }

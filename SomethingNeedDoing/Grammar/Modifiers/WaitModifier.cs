@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Dalamud.Logging;
 
 namespace SomethingNeedDoing.Grammar.Modifiers
 {
@@ -14,7 +18,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
         private WaitModifier(int wait, int until)
         {
             this.Wait = wait;
-            this.Until = until;
+            this.WaitUntil = until;
         }
 
         /// <summary>
@@ -25,7 +29,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
         /// <summary>
         /// Gets the milliseconds to wait until.
         /// </summary>
-        public int Until { get; }
+        public int WaitUntil { get; }
 
         /// <summary>
         /// Parse the text as a modifier.

@@ -26,9 +26,8 @@ namespace SomethingNeedDoing.Grammar.Commands
         private static readonly HashSet<string> CraftingQualityActionNames = new();
 
         private readonly string actionName;
-        private readonly bool safely;
-        private readonly string condition;
-        private readonly bool conditionNegated;
+        private readonly UnsafeModifier unsafeMod;
+        private readonly ConditionModifier conditionMod;
 
         static ActionCommand()
         {
@@ -41,17 +40,15 @@ namespace SomethingNeedDoing.Grammar.Commands
         /// </summary>
         /// <param name="text">Original text.</param>
         /// <param name="actionName">Action name.</param>
-        /// <param name="wait">Wait value.</param>
-        /// <param name="safely">Perform the action safely.</param>
-        /// <param name="condition">Required crafting condition.</param>
-        /// <param name="conditionNegated">Negate the condition check.</param>
-        private ActionCommand(string text, string actionName, WaitModifier wait, bool safely, string condition, bool conditionNegated)
-            : base(text, wait.Wait, wait.Until)
+        /// <param name="waitMod">Wait value.</param>
+        /// <param name="unsafeMod">Perform the action safely.</param>
+        /// <param name="conditionMod">Required crafting condition.</param>
+        private ActionCommand(string text, string actionName, WaitModifier waitMod, UnsafeModifier unsafeMod, ConditionModifier conditionMod)
+            : base(text, waitMod)
         {
             this.actionName = actionName.ToLowerInvariant();
-            this.safely = safely;
-            this.condition = condition.ToLowerInvariant();
-            this.conditionNegated = conditionNegated;
+            this.unsafeMod = unsafeMod;
+            this.conditionMod = conditionMod;
         }
 
         /// <summary>
@@ -71,7 +68,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
             var nameValue = ExtractAndUnquote(match, "name");
 
-            return new ActionCommand(text, nameValue, waitModifier, !unsafeModifier.IsUnsafe, conditionModifier.Condition, conditionModifier.Negated);
+            return new ActionCommand(text, nameValue, waitModifier, unsafeModifier, conditionModifier);
         }
 
         /// <inheritdoc/>
@@ -79,7 +76,7 @@ namespace SomethingNeedDoing.Grammar.Commands
         {
             PluginLog.Debug($"Executing: {this.Text}");
 
-            if (!HasCondition(this.condition, this.conditionNegated))
+            if (!this.conditionMod.HasCondition())
             {
                 PluginLog.Debug($"Condition skip: {this.Text}");
                 return;
@@ -100,7 +97,7 @@ namespace SomethingNeedDoing.Grammar.Commands
 
                 await this.PerformWait(token);
 
-                if (this.safely && !dataWaiter.WaitOne(SafeCraftMaxWait))
+                if (!this.unsafeMod.IsUnsafe && !dataWaiter.WaitOne(SafeCraftMaxWait))
                     throw new MacroCommandError("Did not receive a timely response");
             }
             else

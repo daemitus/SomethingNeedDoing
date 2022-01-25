@@ -1,6 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace SomethingNeedDoing.Grammar.Modifiers
 {
@@ -39,6 +37,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
             }
 
             command = new EchoModifier(success);
+
             return success;
         }
     }

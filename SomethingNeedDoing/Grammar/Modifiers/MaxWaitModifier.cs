@@ -30,21 +30,25 @@ namespace SomethingNeedDoing.Grammar.Modifiers
         public static bool TryParse(ref string text, out MaxWaitModifier command)
         {
             var match = Regex.Match(text);
-            if (!match.Success)
+            var success = match.Success;
+
+            if (success)
+            {
+                var group = match.Groups["modifier"];
+                text = text.Remove(group.Index, group.Length);
+
+                var waitGroup = match.Groups["wait"];
+                var waitValue = waitGroup.Value;
+                var wait = (int)(float.Parse(waitValue, CultureInfo.InvariantCulture) * 1000);
+
+                command = new MaxWaitModifier(wait);
+            }
+            else
             {
                 command = new MaxWaitModifier(0);
-                return false;
             }
 
-            var group = match.Groups["modifier"];
-            text = text.Remove(group.Index, group.Length);
-
-            var waitGroup = match.Groups["wait"];
-            var waitValue = waitGroup.Value;
-            var wait = (int)(float.Parse(waitValue, CultureInfo.InvariantCulture) * 1000);
-
-            command = new MaxWaitModifier(wait);
-            return true;
+            return success;
         }
     }
 }

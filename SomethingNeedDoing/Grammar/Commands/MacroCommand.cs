@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +19,9 @@ namespace SomethingNeedDoing.Grammar.Commands
         /// Initializes a new instance of the <see cref="MacroCommand"/> class.
         /// </summary>
         /// <param name="text">Original line text.</param>
-        /// <param name="wait">Wait value.</param>
-        protected MacroCommand(string text, WaitModifier wait)
-            : this(text, wait.Wait, wait.Until)
+        /// <param name="waitMod">Wait value.</param>
+        protected MacroCommand(string text, WaitModifier waitMod)
+            : this(text, waitMod.Wait, waitMod.WaitUntil)
         {
         }
 
@@ -36,9 +36,6 @@ namespace SomethingNeedDoing.Grammar.Commands
             this.Text = text;
             this.Wait = wait;
             this.WaitUntil = until;
-
-            if (this.WaitUntil > 0 && this.WaitUntil < this.Wait)
-                throw new ArgumentException("WaitUntil must not be larger than the Wait value");
         }
 
         /// <summary>
@@ -47,14 +44,14 @@ namespace SomethingNeedDoing.Grammar.Commands
         public string Text { get; }
 
         /// <summary>
-        /// Gets the WaitModifier "wait" value.
+        /// Gets the milliseconds to wait.
         /// </summary>
-        protected int Wait { get; }
+        public int Wait { get; }
 
         /// <summary>
-        /// Gets the WaitModifier "waitUntil" value.
+        /// Gets the milliseconds to wait until.
         /// </summary>
-        protected int WaitUntil { get; }
+        public int WaitUntil { get; }
 
         /// <inheritdoc/>
         public override string ToString()
@@ -87,46 +84,26 @@ namespace SomethingNeedDoing.Grammar.Commands
         }
 
         /// <summary>
-        /// Perform a wait given the values in <see cref="Wait"/> and <see cref="WaitUntil"/>.
-        /// May be zero.
+        /// Perform a wait.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         protected async Task PerformWait(CancellationToken token)
-            => await this.PerformWait(this.Wait, this.WaitUntil, token);
-
-        /// <summary>
-        /// Perform a wait.
-        /// </summary>
-        /// <param name="wait">Seconds to wait.</param>
-        /// <param name="token">Cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task PerformWait(int wait, CancellationToken token)
-            => await this.PerformWait(wait, 0, token);
-
-        /// <summary>
-        /// Perform a wait.
-        /// </summary>
-        /// <param name="wait">Seconds to wait.</param>
-        /// <param name="until">Max seconds to wait.</param>
-        /// <param name="token">Cancellation token.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        protected async Task PerformWait(int wait, int until, CancellationToken token)
         {
-            if (wait == 0 && until == 0)
+            if (this.Wait == 0 && this.WaitUntil == 0)
                 return;
 
             TimeSpan sleep;
-            if (until == 0)
+            if (this.WaitUntil == 0)
             {
-                sleep = TimeSpan.FromMilliseconds(wait);
+                sleep = TimeSpan.FromMilliseconds(this.Wait);
                 PluginLog.Debug($"Sleeping for {sleep.TotalMilliseconds} millis");
             }
             else
             {
-                var value = Rand.Next(wait, until);
+                var value = Rand.Next(this.Wait, this.WaitUntil);
                 sleep = TimeSpan.FromMilliseconds(value);
-                PluginLog.Debug($"Sleeping for {sleep.TotalMilliseconds} millis ({wait} to {until})");
+                PluginLog.Debug($"Sleeping for {sleep.TotalMilliseconds} millis ({this.Wait} to {this.WaitUntil})");
             }
 
             await Task.Delay(sleep, token);
