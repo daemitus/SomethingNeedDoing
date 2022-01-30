@@ -346,6 +346,10 @@ namespace SomethingNeedDoing.Interface
                     Service.MacroManager.Resume();
 
                 ImGui.SameLine();
+                if (ImGuiEx.IconButton(FontAwesomeIcon.StepForward, "Step"))
+                    Service.MacroManager.NextStep();
+
+                ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.TrashAlt, "Clear"))
                     Service.MacroManager.Stop();
             }

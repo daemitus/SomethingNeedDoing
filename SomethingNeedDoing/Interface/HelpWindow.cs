@@ -216,6 +216,13 @@ namespace SomethingNeedDoing.Interface
         {
             ImGui.PushFont(UiBuilder.MonoFont);
 
+            ImGui.Text("2022-01-30");
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped(
+                "- Added a \"Step\" button to the control bar that lets you skip to the next step when the macro is paused.\n");
+            ImGui.PopStyleColor();
+            ImGui.Separator();
+
             ImGui.Text("2022-01-25");
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped(

@@ -306,6 +306,19 @@ namespace SomethingNeedDoing.Managers
         }
 
         /// <summary>
+        /// Proceed to the next step.
+        /// </summary>
+        public void NextStep()
+        {
+            if (this.macroStack.TryPeek(out var macro))
+            {
+                // While there should always be a macro present, the
+                // stack can be empty if it is cleared during a loop.
+                macro.NextStep();
+            }
+        }
+
+        /// <summary>
         /// Gets the contents of the current macro.
         /// </summary>
         /// <returns>Macro contents.</returns>
