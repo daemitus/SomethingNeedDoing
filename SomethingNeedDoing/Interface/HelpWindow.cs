@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -69,7 +72,7 @@ namespace SomethingNeedDoing.Interface
                 }),
             (
                 "send", null,
-                "Send an arbitrary keystroke. You can discover the valid names by using the \"KeyState\" view inside the \"/xldata\" window.",
+                "Send an arbitrary keystroke.",
                 new[] { "wait" },
                 new[]
                 {
@@ -190,6 +193,7 @@ namespace SomethingNeedDoing.Interface
                     ("Modifiers", this.DrawModifiers),
                     ("CLI", this.DrawCli),
                     ("Clicks", this.DrawClicks),
+                    ("Sends", this.DrawVirtualKeys),
                 };
 
                 foreach (var (title, dele) in tabs)
@@ -216,10 +220,18 @@ namespace SomethingNeedDoing.Interface
         {
             ImGui.PushFont(UiBuilder.MonoFont);
 
+            ImGui.Text("2022-02-02");
+            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+            ImGui.TextWrapped(
+                "- Added /send help pane.\n" +
+                "- Fixed /loop echo commands not being sent to the echo channel.\n");
+            ImGui.PopStyleColor();
+            ImGui.Separator();
+
             ImGui.Text("2022-01-30");
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
             ImGui.TextWrapped(
-                "- Added a \"Step\" button to the control bar that lets you skip to the next step when the macro is paused.\n");
+                "- Added a \"Step\" button to the control bar that lets you skip to the next step when a macro is paused.\n");
             ImGui.PopStyleColor();
             ImGui.Separator();
 
@@ -281,7 +293,7 @@ namespace SomethingNeedDoing.Interface
             }
 
             ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped("- Skip quality increasing actions when the HQ chance is at 100%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
+            ImGui.TextWrapped("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
             ImGui.PopStyleColor();
 
             var loopTotal = Service.Configuration.LoopTotal;
@@ -399,6 +411,40 @@ namespace SomethingNeedDoing.Interface
             foreach (var name in this.clickNames)
             {
                 ImGui.Text($"/click {name}");
+            }
+
+            ImGui.PopFont();
+        }
+
+        private void DrawVirtualKeys()
+        {
+            ImGui.PushFont(UiBuilder.MonoFont);
+
+            ImGui.TextWrapped("Active keys will highlight green.");
+            ImGui.Separator();
+
+            var validKeys = Service.KeyState.GetValidVirtualKeys().ToHashSet();
+
+            var names = Enum.GetNames<VirtualKey>();
+            var values = Enum.GetValues<VirtualKey>();
+
+            for (var i = 0; i < names.Length; i++)
+            {
+                var name = names[i];
+                var vkCode = values[i];
+
+                if (!validKeys.Contains(vkCode))
+                    continue;
+
+                var isActive = Service.KeyState[vkCode];
+
+                if (isActive)
+                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
+
+                ImGui.Text($"/send {name}");
+
+                if (isActive)
+                    ImGui.PopStyleColor();
             }
 
             ImGui.PopFont();

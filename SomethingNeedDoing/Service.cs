@@ -2,6 +2,7 @@ using Dalamud.Data;
 using Dalamud.Game;
 using Dalamud.Game.ClientState;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Game.Command;
 using Dalamud.Game.Gui;
@@ -93,6 +94,12 @@ namespace SomethingNeedDoing
         /// </summary>
         [PluginService]
         internal static GameGui GameGui { get; private set; } = null!;
+
+        /// <summary>
+        /// Gets the Dalamud keystate.
+        /// </summary>
+        [PluginService]
+        internal static KeyState KeyState { get; private set; } = null!;
 
         /// <summary>
         /// Gets the Dalamud object table.
