@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,18 +67,25 @@ namespace SomethingNeedDoing.Grammar.Commands
         {
             PluginLog.Debug($"Executing: {this.Text}");
 
-            if (this.loopsRemaining != MaxLoops)
+            if (this.loopsRemaining == MaxLoops)
+            {
+                if (this.echoMod.PerformEcho || Service.Configuration.LoopEcho)
+                {
+                    Service.ChatManager.PrintEchoMessage("Looping");
+                }
+            }
+            else
             {
                 if (this.echoMod.PerformEcho || Service.Configuration.LoopEcho)
                 {
                     if (this.loopsRemaining == 0)
                     {
-                        Service.ChatManager.PrintMessage($"No loops remaining");
+                        Service.ChatManager.PrintEchoMessage("No loops remaining");
                     }
                     else
                     {
                         var noun = this.loopsRemaining == 1 ? "loop" : "loops";
-                        Service.ChatManager.PrintMessage($"{this.loopsRemaining} {noun} remaining");
+                        Service.ChatManager.PrintEchoMessage($"{this.loopsRemaining} {noun} remaining");
                     }
                 }
 

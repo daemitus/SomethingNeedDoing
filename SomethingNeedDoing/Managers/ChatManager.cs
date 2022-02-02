@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Channels;
 
 using Dalamud.Game;
+using Dalamud.Game.Text;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace SomethingNeedDoing.Managers
@@ -42,6 +43,17 @@ namespace SomethingNeedDoing.Managers
         /// <param name="message">The message to print.</param>
         public void PrintMessage(string message)
             => Service.ChatGui.Print($"[SND] {message}");
+
+        /// <summary>
+        /// Print a normal message.
+        /// </summary>
+        /// <param name="message">The message to print.</param>
+        public void PrintEchoMessage(string message)
+            => Service.ChatGui.PrintChat(new XivChatEntry()
+            {
+                Message = $"[SND] {message}",
+                Type = XivChatType.Echo,
+            });
 
         /// <summary>
         /// Print an error message.
