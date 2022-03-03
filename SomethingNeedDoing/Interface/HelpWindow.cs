@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -16,7 +16,7 @@ namespace SomethingNeedDoing.Interface
     /// </summary>
     internal class HelpWindow : Window
     {
-        private readonly Vector4 shadedColor = new(0.68f, 0.68f, 0.68f, 1.0f);
+        private static readonly Vector4 ShadedColor = new(0.68f, 0.68f, 0.68f, 1.0f);
 
         private readonly (string Name, string? Alias, string Description, string[] Modifiers, string[] Examples)[] commandData = new[]
         {
@@ -218,37 +218,38 @@ namespace SomethingNeedDoing.Interface
 
         private void DrawChangelog()
         {
+            static void DisplayChangelog(string date, string changes, bool separator = true)
+            {
+                ImGui.Text(date);
+                ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+                ImGui.TextWrapped(changes);
+                ImGui.PopStyleColor();
+
+                if (separator)
+                    ImGui.Separator();
+            }
+
             ImGui.PushFont(UiBuilder.MonoFont);
 
-            ImGui.Text("2022-02-02");
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped(
+            DisplayChangelog(
+                "2022-02-02",
                 "- Added /send help pane.\n" +
                 "- Fixed /loop echo commands not being sent to the echo channel.\n");
-            ImGui.PopStyleColor();
-            ImGui.Separator();
 
-            ImGui.Text("2022-01-30");
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped(
+            DisplayChangelog(
+                "2022-01-30",
                 "- Added a \"Step\" button to the control bar that lets you skip to the next step when a macro is paused.\n");
-            ImGui.PopStyleColor();
-            ImGui.Separator();
 
-            ImGui.Text("2022-01-25");
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped(
+            DisplayChangelog(
+                "2022-01-25",
                 "- The help menu now has an options pane.\n" +
                 "- Added an option to disable skipping craft actions when not crafting or at max progress.\n" +
                 "- Added an option to disable the automatic quality increasing action skip, when at max quality.\n" +
                 "- Added an option to treat /loop as the total iterations, rather than the amount to repeat.\n" +
                 "- Added an option to always treat /loop commands as having an <echo> modifier.\n");
-            ImGui.PopStyleColor();
-            ImGui.Separator();
 
-            ImGui.Text("2022-01-16");
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped(
+            DisplayChangelog(
+                "2022-01-16",
                 "- The help menu now has a /click listing.\n" +
                 "- Various quality increasing skills are skipped when at max quality. Please open an issue if you encounter issues with this.\n" +
                 "- /loop # will reset after reaching the desired amount of loops. This allows for nested looping. You can test this with the following:\n" +
@@ -257,15 +258,12 @@ namespace SomethingNeedDoing.Interface
                 "    /echo 222 <wait.1>\n" +
                 "    /loop 1\n" +
                 "    /echo 333 <wait.1>\n");
-            ImGui.PopStyleColor();
-            ImGui.Separator();
 
-            ImGui.Text("2022-01-01");
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped(
+            DisplayChangelog(
+                "2022-01-01",
                 "- Various /pcraft commands have been added. View the help menu for more details.\n" +
-                "- There is also a help menu.\n");
-            ImGui.PopStyleColor();
+                "- There is also a help menu.\n",
+                false);
 
             ImGui.PopFont();
         }
@@ -274,6 +272,16 @@ namespace SomethingNeedDoing.Interface
         {
             ImGui.PushFont(UiBuilder.MonoFont);
 
+            static void DisplayOption(params string[] lines)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
+
+                foreach (var line in lines)
+                    ImGui.TextWrapped(line);
+
+                ImGui.PopStyleColor();
+            }
+
             var craftSkip = Service.Configuration.CraftSkip;
             if (ImGui.Checkbox("Craft Skip", ref craftSkip))
             {
@@ -281,9 +289,7 @@ namespace SomethingNeedDoing.Interface
                 Service.Configuration.Save();
             }
 
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped("- Skip craft actions when not crafting.");
-            ImGui.PopStyleColor();
+            DisplayOption("- Skip craft actions when not crafting.");
 
             var qualitySkip = Service.Configuration.QualitySkip;
             if (ImGui.Checkbox("Quality Skip", ref qualitySkip))
@@ -292,9 +298,7 @@ namespace SomethingNeedDoing.Interface
                 Service.Configuration.Save();
             }
 
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
-            ImGui.PopStyleColor();
+            DisplayOption("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
 
             var loopTotal = Service.Configuration.LoopTotal;
             if (ImGui.Checkbox("Loop Total", ref loopTotal))
@@ -303,9 +307,7 @@ namespace SomethingNeedDoing.Interface
                 Service.Configuration.Save();
             }
 
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
-            ImGui.PopStyleColor();
+            DisplayOption("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
 
             var loopEcho = Service.Configuration.LoopEcho;
             if (ImGui.Checkbox("Loop Echo", ref loopEcho))
@@ -314,9 +316,7 @@ namespace SomethingNeedDoing.Interface
                 Service.Configuration.Save();
             }
 
-            ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
-            ImGui.TextWrapped("- Loop commands will always have an <echo> tag applied.");
-            ImGui.PopStyleColor();
+            DisplayOption("- Loop commands will always have an <echo> tag applied.");
 
             ImGui.PopFont();
         }
@@ -329,7 +329,7 @@ namespace SomethingNeedDoing.Interface
             {
                 ImGui.Text($"/{name}");
 
-                ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
 
                 if (alias != null)
                     ImGui.Text($"- Alias: /{alias}");
@@ -360,7 +360,7 @@ namespace SomethingNeedDoing.Interface
             {
                 ImGui.Text($"<{name}>");
 
-                ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
 
                 ImGui.TextWrapped($"- Description: {desc}");
 
@@ -384,7 +384,7 @@ namespace SomethingNeedDoing.Interface
             {
                 ImGui.Text($"/pcraft {name}");
 
-                ImGui.PushStyleColor(ImGuiCol.Text, this.shadedColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, ShadedColor);
 
                 ImGui.TextWrapped($"- Description: {desc}");
 
