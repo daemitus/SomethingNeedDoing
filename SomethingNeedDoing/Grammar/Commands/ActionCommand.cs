@@ -110,10 +110,32 @@ namespace SomethingNeedDoing.Grammar.Commands
 
                 Service.ChatManager.SendMessage(this.Text);
 
-                await this.PerformWait(token);
+                if (Service.Configuration.SmartWait)
+                {
+                    PluginLog.Debug("Smart wait");
 
-                if (!this.unsafeMod.IsUnsafe && !dataWaiter.WaitOne(SafeCraftMaxWait))
-                    throw new MacroCommandError("Did not receive a timely response");
+                    if (this.unsafeMod.IsUnsafe)
+                    {
+                        // Pause a moment to let the action begin
+                        await Task.Delay(250, token);
+                    }
+                    else
+                    {
+                        // Wait for the data update
+                        if (!dataWaiter.WaitOne(SafeCraftMaxWait))
+                            throw new MacroCommandError("Did not receive a timely response");
+                    }
+
+                    while (Service.Condition[ConditionFlag.Crafting40])
+                        await Task.Delay(250, token);
+                }
+                else
+                {
+                    await this.PerformWait(token);
+
+                    if (!this.unsafeMod.IsUnsafe && !dataWaiter.WaitOne(SafeCraftMaxWait))
+                        throw new MacroCommandError("Did not receive a timely response");
+                }
             }
             else
             {

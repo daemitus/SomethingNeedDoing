@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -233,6 +233,7 @@ namespace SomethingNeedDoing.Interface
 
             DisplayChangelog(
                 "2022-03-03",
+                "- Added an intelligent wait option that waits until your crafting action is complete, rather than what is in the <wait> modifier.\n" +
                 "- Updated the <condition> modifier to accept a comma delimited list of names.\n");
 
             DisplayChangelog(
@@ -294,6 +295,15 @@ namespace SomethingNeedDoing.Interface
             }
 
             DisplayOption("- Skip craft actions when not crafting.");
+
+            var smartWait = Service.Configuration.SmartWait;
+            if (ImGui.Checkbox("Smart Wait", ref smartWait))
+            {
+                Service.Configuration.SmartWait = smartWait;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Intelligently wait for crafting actions to complete instead of using the <wait> or <unsafe> modifiers.");
 
             var qualitySkip = Service.Configuration.QualitySkip;
             if (ImGui.Checkbox("Quality Skip", ref qualitySkip))

@@ -28,6 +28,11 @@ namespace SomethingNeedDoing
         public bool CraftSkip { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a value indicating whether to intelligently wait for crafting actions to complete instead of using wait modifiers.
+        /// </summary>
+        public bool SmartWait { get; set; } = false;
+
+        /// <summary>
         /// Gets or sets a value indicating whether to skip quality increasing actions when at 100% HQ chance.
         /// </summary>
         public bool QualitySkip { get; set; } = true;
