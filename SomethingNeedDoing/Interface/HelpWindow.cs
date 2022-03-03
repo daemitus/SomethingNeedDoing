@@ -131,7 +131,7 @@ namespace SomethingNeedDoing.Interface
                 new[]
                 {
                     "/ac Observe <condition.poor>",
-                    "/ac \"Precise Touch\" <condition.good>",
+                    "/ac \"Precise Touch\" <condition.good,excellent>",
                     "/ac \"Byregot's Blessing\" <condition.not.poor>",
                     "/ac \"Byregot's Blessing\" <condition.!poor>",
                 }),
@@ -230,6 +230,10 @@ namespace SomethingNeedDoing.Interface
             }
 
             ImGui.PushFont(UiBuilder.MonoFont);
+
+            DisplayChangelog(
+                "2022-03-03",
+                "- Updated the <condition> modifier to accept a comma delimited list of names.\n");
 
             DisplayChangelog(
                 "2022-02-02",

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Dalamud.Logging;
@@ -11,14 +12,14 @@ namespace SomethingNeedDoing.Grammar.Modifiers
     /// </summary>
     internal class ConditionModifier : MacroModifier
     {
-        private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<name>[a-zA-Z]+)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<names>[a-zA-Z]+((,[a-zA-Z]+)+)?)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        private readonly string condition;
+        private readonly string[] conditions;
         private readonly bool negated;
 
-        private ConditionModifier(string condition, bool negated)
+        private ConditionModifier(string[] conditions, bool negated)
         {
-            this.condition = condition;
+            this.conditions = conditions;
             this.negated = negated;
         }
 
@@ -38,14 +39,18 @@ namespace SomethingNeedDoing.Grammar.Modifiers
                 var group = match.Groups["modifier"];
                 text = text.Remove(group.Index, group.Length);
 
-                var conditionName = match.Groups["name"].Value.ToLowerInvariant();
+                var conditionNames = match.Groups["names"].Value
+                    .ToLowerInvariant().Split(",")
+                    .Select(name => name.Trim())
+                    .Where(name => !string.IsNullOrEmpty(name))
+                    .ToArray();
                 var negated = match.Groups["not"].Success;
 
-                command = new ConditionModifier(conditionName, negated);
+                command = new ConditionModifier(conditionNames, negated);
             }
             else
             {
-                command = new ConditionModifier(string.Empty, false);
+                command = new ConditionModifier(Array.Empty<string>(), false);
             }
 
             return success;
@@ -57,7 +62,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers
         /// <returns>A parsed command.</returns>
         public unsafe bool HasCondition()
         {
-            if (this.condition == string.Empty)
+            if (this.conditions.Length == 0)
                 return true;
 
             var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
@@ -70,9 +75,12 @@ namespace SomethingNeedDoing.Grammar.Modifiers
             var addonPtr = (AddonSynthesis*)addon;
             var text = addonPtr->Condition->NodeText.ToString().ToLowerInvariant();
 
-            return this.negated
-                ? text != this.condition
-                : text == this.condition;
+            var matchesText = this.conditions.Any(name => name == text);
+
+            if (this.negated)
+                matchesText ^= true;
+
+            return matchesText;
         }
     }
 }
