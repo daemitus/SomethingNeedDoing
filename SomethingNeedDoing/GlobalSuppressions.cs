@@ -6,14 +6,14 @@
 using System.Diagnostics.CodeAnalysis;
 
 // General
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1118:Parameter should not span multiple lines", Justification = "Preventing long lines", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "I like regions", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1123:Do not place regions within elements", Justification = "I like regions in elements too", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1503:Braces should not be omitted", Justification = "This is annoying", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1512:Single-line comments should not be followed by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
-[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1127:Generic type constraints should be on their own line", Justification = "I like this better", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
+[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1118:Parameter should not span multiple lines", Justification = "Preventing long lines", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1124:Do not use regions", Justification = "I like regions", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1123:Do not place regions within elements", Justification = "I like regions in elements too", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1503:Braces should not be omitted", Justification = "This is annoying", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1512:Single-line comments should not be followed by blank line", Justification = "I like this better", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1515:Single-line comment should be preceded by blank line", Justification = "I like this better", Scope = "module")]
+[assembly: SuppressMessage("StyleCop.CSharp.ReadabilityRules", "SA1127:Generic type constraints should be on their own line", Justification = "I like this better", Scope = "module")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:File should have header", Justification = "We don't do those yet")]
 
-[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Grouping usage of relevant classes.", Scope = "namespaceanddescendants", Target = "~N:SomethingNeedDoing")]
+[assembly: SuppressMessage("StyleCop.CSharp.MaintainabilityRules", "SA1402:File may only contain a single type", Justification = "Grouping usage of relevant classes.", Scope = "module")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1649:File name should match first type name", Justification = "Name is relevant to contents.", Scope = "type", Target = "~T:SomethingNeedDoing.INode")]
