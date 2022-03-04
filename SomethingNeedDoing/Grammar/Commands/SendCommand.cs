@@ -9,58 +9,57 @@ using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 using SomethingNeedDoing.Managers;
 
-namespace SomethingNeedDoing.Grammar.Commands
+namespace SomethingNeedDoing.Grammar.Commands;
+
+/// <summary>
+/// The /send command.
+/// </summary>
+internal class SendCommand : MacroCommand
 {
+    private static readonly Regex Regex = new(@"^/send\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private readonly VirtualKey vkCode;
+
     /// <summary>
-    /// The /send command.
+    /// Initializes a new instance of the <see cref="SendCommand"/> class.
     /// </summary>
-    internal class SendCommand : MacroCommand
+    /// <param name="text">Original text.</param>
+    /// <param name="vkCode">VirtualKey code.</param>
+    /// <param name="wait">Wait value.</param>
+    private SendCommand(string text, VirtualKey vkCode, WaitModifier wait)
+        : base(text, wait)
     {
-        private static readonly Regex Regex = new(@"^/send\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        this.vkCode = vkCode;
+    }
 
-        private readonly VirtualKey vkCode;
+    /// <summary>
+    /// Parse the text as a command.
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <returns>A parsed command.</returns>
+    public static SendCommand Parse(string text)
+    {
+        _ = WaitModifier.TryParse(ref text, out var waitModifier);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SendCommand"/> class.
-        /// </summary>
-        /// <param name="text">Original text.</param>
-        /// <param name="vkCode">VirtualKey code.</param>
-        /// <param name="wait">Wait value.</param>
-        private SendCommand(string text, VirtualKey vkCode, WaitModifier wait)
-            : base(text, wait)
-        {
-            this.vkCode = vkCode;
-        }
+        var match = Regex.Match(text);
+        if (!match.Success)
+            throw new MacroSyntaxError(text);
 
-        /// <summary>
-        /// Parse the text as a command.
-        /// </summary>
-        /// <param name="text">Text to parse.</param>
-        /// <returns>A parsed command.</returns>
-        public static SendCommand Parse(string text)
-        {
-            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+        var nameValue = ExtractAndUnquote(match, "name");
 
-            var match = Regex.Match(text);
-            if (!match.Success)
-                throw new MacroSyntaxError(text);
+        if (!Enum.TryParse<VirtualKey>(nameValue, true, out var vkCode))
+            throw new MacroCommandError("Invalid virtual key");
 
-            var nameValue = ExtractAndUnquote(match, "name");
+        return new SendCommand(text, vkCode, waitModifier);
+    }
 
-            if (!Enum.TryParse<VirtualKey>(nameValue, true, out var vkCode))
-                throw new MacroCommandError("Invalid virtual key");
+    /// <inheritdoc/>
+    public async override Task Execute(CancellationToken token)
+    {
+        PluginLog.Debug($"Executing: {this.Text}");
 
-            return new SendCommand(text, vkCode, waitModifier);
-        }
+        KeyboardManager.Send(this.vkCode);
 
-        /// <inheritdoc/>
-        public async override Task Execute(CancellationToken token)
-        {
-            PluginLog.Debug($"Executing: {this.Text}");
-
-            KeyboardManager.Send(this.vkCode);
-
-            await this.PerformWait(token);
-        }
+        await this.PerformWait(token);
     }
 }

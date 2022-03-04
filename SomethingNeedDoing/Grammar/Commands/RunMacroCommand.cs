@@ -7,62 +7,61 @@ using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.Grammar.Commands
+namespace SomethingNeedDoing.Grammar.Commands;
+
+/// <summary>
+/// The /runmacro command.
+/// </summary>
+internal class RunMacroCommand : MacroCommand
 {
+    private static readonly Regex Regex = new(@"^/runmacro\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private readonly string macroName;
+
     /// <summary>
-    /// The /runmacro command.
+    /// Initializes a new instance of the <see cref="RunMacroCommand"/> class.
     /// </summary>
-    internal class RunMacroCommand : MacroCommand
+    /// <param name="text">Original text.</param>
+    /// <param name="macroName">Macro name.</param>
+    /// <param name="wait">Wait value.</param>
+    private RunMacroCommand(string text, string macroName, WaitModifier wait)
+        : base(text, wait)
     {
-        private static readonly Regex Regex = new(@"^/runmacro\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        this.macroName = macroName;
+    }
 
-        private readonly string macroName;
+    /// <summary>
+    /// Parse the text as a command.
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <returns>A parsed command.</returns>
+    public static RunMacroCommand Parse(string text)
+    {
+        _ = WaitModifier.TryParse(ref text, out var waitModifier);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RunMacroCommand"/> class.
-        /// </summary>
-        /// <param name="text">Original text.</param>
-        /// <param name="macroName">Macro name.</param>
-        /// <param name="wait">Wait value.</param>
-        private RunMacroCommand(string text, string macroName, WaitModifier wait)
-            : base(text, wait)
-        {
-            this.macroName = macroName;
-        }
+        var match = Regex.Match(text);
+        if (!match.Success)
+            throw new MacroSyntaxError(text);
 
-        /// <summary>
-        /// Parse the text as a command.
-        /// </summary>
-        /// <param name="text">Text to parse.</param>
-        /// <returns>A parsed command.</returns>
-        public static RunMacroCommand Parse(string text)
-        {
-            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+        var nameValue = ExtractAndUnquote(match, "name");
 
-            var match = Regex.Match(text);
-            if (!match.Success)
-                throw new MacroSyntaxError(text);
+        return new RunMacroCommand(text, nameValue, waitModifier);
+    }
 
-            var nameValue = ExtractAndUnquote(match, "name");
+    /// <inheritdoc/>
+    public async override Task Execute(CancellationToken token)
+    {
+        PluginLog.Debug($"Executing: {this.Text}");
 
-            return new RunMacroCommand(text, nameValue, waitModifier);
-        }
+        var macroNode = Service.Configuration
+            .GetAllNodes().OfType<MacroNode>()
+            .FirstOrDefault(macro => macro.Name == this.macroName);
 
-        /// <inheritdoc/>
-        public async override Task Execute(CancellationToken token)
-        {
-            PluginLog.Debug($"Executing: {this.Text}");
+        if (macroNode == default)
+            throw new MacroCommandError("No macro with that name");
 
-            var macroNode = Service.Configuration
-                .GetAllNodes().OfType<MacroNode>()
-                .FirstOrDefault(macro => macro.Name == this.macroName);
+        Service.MacroManager.EnqueueMacro(macroNode);
 
-            if (macroNode == default)
-                throw new MacroCommandError("No macro with that name");
-
-            Service.MacroManager.EnqueueMacro(macroNode);
-
-            await this.PerformWait(token);
-        }
+        await this.PerformWait(token);
     }
 }

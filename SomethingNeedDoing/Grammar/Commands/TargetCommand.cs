@@ -7,60 +7,59 @@ using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.Grammar.Commands
+namespace SomethingNeedDoing.Grammar.Commands;
+
+/// <summary>
+/// The /target command.
+/// </summary>
+internal class TargetCommand : MacroCommand
 {
+    private static readonly Regex Regex = new(@"^/target\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private readonly string targetName;
+
     /// <summary>
-    /// The /target command.
+    /// Initializes a new instance of the <see cref="TargetCommand"/> class.
     /// </summary>
-    internal class TargetCommand : MacroCommand
+    /// <param name="text">Original text.</param>
+    /// <param name="targetName">Target name.</param>
+    /// <param name="wait">Wait value.</param>
+    private TargetCommand(string text, string targetName, WaitModifier wait)
+        : base(text, wait)
     {
-        private static readonly Regex Regex = new(@"^/target\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        this.targetName = targetName.ToLowerInvariant();
+    }
 
-        private readonly string targetName;
+    /// <summary>
+    /// Parse the text as a command.
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <returns>A parsed command.</returns>
+    public static TargetCommand Parse(string text)
+    {
+        _ = WaitModifier.TryParse(ref text, out var waitModifier);
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TargetCommand"/> class.
-        /// </summary>
-        /// <param name="text">Original text.</param>
-        /// <param name="targetName">Target name.</param>
-        /// <param name="wait">Wait value.</param>
-        private TargetCommand(string text, string targetName, WaitModifier wait)
-            : base(text, wait)
-        {
-            this.targetName = targetName.ToLowerInvariant();
-        }
+        var match = Regex.Match(text);
+        if (!match.Success)
+            throw new MacroSyntaxError(text);
 
-        /// <summary>
-        /// Parse the text as a command.
-        /// </summary>
-        /// <param name="text">Text to parse.</param>
-        /// <returns>A parsed command.</returns>
-        public static TargetCommand Parse(string text)
-        {
-            _ = WaitModifier.TryParse(ref text, out var waitModifier);
+        var nameValue = ExtractAndUnquote(match, "name");
 
-            var match = Regex.Match(text);
-            if (!match.Success)
-                throw new MacroSyntaxError(text);
+        return new TargetCommand(text, nameValue, waitModifier);
+    }
 
-            var nameValue = ExtractAndUnquote(match, "name");
+    /// <inheritdoc/>
+    public async override Task Execute(CancellationToken token)
+    {
+        PluginLog.Debug($"Executing: {this.Text}");
 
-            return new TargetCommand(text, nameValue, waitModifier);
-        }
+        var target = Service.ObjectTable.FirstOrDefault(obj => obj.Name.TextValue.ToLowerInvariant() == this.targetName);
 
-        /// <inheritdoc/>
-        public async override Task Execute(CancellationToken token)
-        {
-            PluginLog.Debug($"Executing: {this.Text}");
+        if (target == default)
+            throw new MacroCommandError("Could not find target");
 
-            var target = Service.ObjectTable.FirstOrDefault(obj => obj.Name.TextValue.ToLowerInvariant() == this.targetName);
+        Service.TargetManager.SetTarget(target);
 
-            if (target == default)
-                throw new MacroCommandError("Could not find target");
-
-            Service.TargetManager.SetTarget(target);
-
-            await this.PerformWait(token);
-        }
+        await this.PerformWait(token);
     }
 }

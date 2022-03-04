@@ -1,69 +1,64 @@
 ﻿using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
-using Dalamud.Logging;
+namespace SomethingNeedDoing.Grammar.Modifiers;
 
-namespace SomethingNeedDoing.Grammar.Modifiers
+/// <summary>
+/// The &lt;wait&gt; modifier.
+/// </summary>
+internal class WaitModifier : MacroModifier
 {
-    /// <summary>
-    /// The &lt;wait&gt; modifier.
-    /// </summary>
-    internal class WaitModifier : MacroModifier
+    private static readonly Regex Regex = new(@"(?<modifier><wait\.(?<wait>\d+(?:\.\d+)?)(?:-(?<until>\d+(?:\.\d+)?))?>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private WaitModifier(int wait, int until)
     {
-        private static readonly Regex Regex = new(@"(?<modifier><wait\.(?<wait>\d+(?:\.\d+)?)(?:-(?<until>\d+(?:\.\d+)?))?>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        this.Wait = wait;
+        this.WaitUntil = until;
+    }
 
-        private WaitModifier(int wait, int until)
+    /// <summary>
+    /// Gets the milliseconds to wait.
+    /// </summary>
+    public int Wait { get; }
+
+    /// <summary>
+    /// Gets the milliseconds to wait until.
+    /// </summary>
+    public int WaitUntil { get; }
+
+    /// <summary>
+    /// Parse the text as a modifier.
+    /// </summary>
+    /// <param name="text">Text to parse.</param>
+    /// <param name="command">A parsed modifier.</param>
+    /// <returns>A value indicating whether the modifier matched.</returns>
+    public static bool TryParse(ref string text, out WaitModifier command)
+    {
+        var match = Regex.Match(text);
+        var success = match.Success;
+
+        if (!success)
         {
-            this.Wait = wait;
-            this.WaitUntil = until;
+            command = new WaitModifier(0, 0);
+            return false;
         }
 
-        /// <summary>
-        /// Gets the milliseconds to wait.
-        /// </summary>
-        public int Wait { get; }
+        var group = match.Groups["modifier"];
+        text = text.Remove(group.Index, group.Length);
 
-        /// <summary>
-        /// Gets the milliseconds to wait until.
-        /// </summary>
-        public int WaitUntil { get; }
+        var waitGroup = match.Groups["wait"];
+        var waitValue = waitGroup.Value;
+        var wait = (int)(float.Parse(waitValue, CultureInfo.InvariantCulture) * 1000);
 
-        /// <summary>
-        /// Parse the text as a modifier.
-        /// </summary>
-        /// <param name="text">Text to parse.</param>
-        /// <param name="command">A parsed modifier.</param>
-        /// <returns>A value indicating whether the modifier matched.</returns>
-        public static bool TryParse(ref string text, out WaitModifier command)
-        {
-            var match = Regex.Match(text);
-            var success = match.Success;
+        var untilGroup = match.Groups["until"];
+        var untilValue = untilGroup.Success ? untilGroup.Value : "0";
+        var until = (int)(float.Parse(untilValue, CultureInfo.InvariantCulture) * 1000);
 
-            if (!success)
-            {
-                command = new WaitModifier(0, 0);
-                return false;
-            }
+        if (wait > until && until > 0)
+            throw new ArgumentException("Until value cannot be lower than the wait value");
 
-            var group = match.Groups["modifier"];
-            text = text.Remove(group.Index, group.Length);
-
-            var waitGroup = match.Groups["wait"];
-            var waitValue = waitGroup.Value;
-            var wait = (int)(float.Parse(waitValue, CultureInfo.InvariantCulture) * 1000);
-
-            var untilGroup = match.Groups["until"];
-            var untilValue = untilGroup.Success ? untilGroup.Value : "0";
-            var until = (int)(float.Parse(untilValue, CultureInfo.InvariantCulture) * 1000);
-
-            if (wait > until && until > 0)
-                throw new ArgumentException("Until value cannot be lower than the wait value");
-
-            command = new WaitModifier(wait, until);
-            return true;
-        }
+        command = new WaitModifier(wait, until);
+        return true;
     }
 }

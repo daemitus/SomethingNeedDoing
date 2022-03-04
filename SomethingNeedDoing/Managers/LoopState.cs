@@ -1,33 +1,32 @@
-﻿namespace SomethingNeedDoing.Managers
+﻿namespace SomethingNeedDoing.Managers;
+
+/// <summary>
+/// The state of the macro manager.
+/// </summary>
+internal enum LoopState
 {
     /// <summary>
-    /// The state of the macro manager.
+    /// Not logged in.
     /// </summary>
-    internal enum LoopState
-    {
-        /// <summary>
-        /// Not logged in.
-        /// </summary>
-        NotLoggedIn,
+    NotLoggedIn,
 
-        /// <summary>
-        /// Waiting.
-        /// </summary>
-        Waiting,
+    /// <summary>
+    /// Waiting.
+    /// </summary>
+    Waiting,
 
-        /// <summary>
-        /// Running.
-        /// </summary>
-        Running,
+    /// <summary>
+    /// Running.
+    /// </summary>
+    Running,
 
-        /// <summary>
-        /// Paused.
-        /// </summary>
-        Paused,
+    /// <summary>
+    /// Paused.
+    /// </summary>
+    Paused,
 
-        /// <summary>
-        /// Stopped.
-        /// </summary>
-        Stopped,
-    }
+    /// <summary>
+    /// Stopped.
+    /// </summary>
+    Stopped,
 }

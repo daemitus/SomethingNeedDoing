@@ -6,54 +6,53 @@ using System.Threading;
 
 using Dalamud.Game.ClientState.Keys;
 
-namespace SomethingNeedDoing.Managers
+namespace SomethingNeedDoing.Managers;
+
+/// <summary>
+/// Simulate pressing keyboard input.
+/// </summary>
+internal static class KeyboardManager
 {
+    private static IntPtr? handle = null;
+
     /// <summary>
-    /// Simulate pressing keyboard input.
+    /// Send a virtual key.
     /// </summary>
-    internal static class KeyboardManager
+    /// <param name="key">Key to send.</param>
+    public static void Send(VirtualKey key) => Send(key, null);
+
+    /// <summary>
+    /// Send a virtual key with modifiers.
+    /// </summary>
+    /// <param name="key">Key to send.</param>
+    /// <param name="mods">Modifiers to press.</param>
+    public static void Send(VirtualKey key, IEnumerable<VirtualKey>? mods)
     {
-        private static IntPtr? handle = null;
+        const int WM_KEYDOWN = 0x100;
+        const int WM_KEYUP = 0x101;
 
-        /// <summary>
-        /// Send a virtual key.
-        /// </summary>
-        /// <param name="key">Key to send.</param>
-        public static void Send(VirtualKey key) => Send(key, null);
-
-        /// <summary>
-        /// Send a virtual key with modifiers.
-        /// </summary>
-        /// <param name="key">Key to send.</param>
-        /// <param name="mods">Modifiers to press.</param>
-        public static void Send(VirtualKey key, IEnumerable<VirtualKey>? mods)
+        if (key != 0)
         {
-            const int WM_KEYDOWN = 0x100;
-            const int WM_KEYUP = 0x101;
+            var hWnd = handle ??= Process.GetCurrentProcess().MainWindowHandle;
 
-            if (key != 0)
+            if (mods != null)
             {
-                var hWnd = handle ??= Process.GetCurrentProcess().MainWindowHandle;
+                foreach (var mod in mods)
+                    _ = SendMessage(hWnd, WM_KEYDOWN, (IntPtr)mod, IntPtr.Zero);
+            }
 
-                if (mods != null)
-                {
-                    foreach (var mod in mods)
-                        _ = SendMessage(hWnd, WM_KEYDOWN, (IntPtr)mod, IntPtr.Zero);
-                }
+            _ = SendMessage(hWnd, WM_KEYDOWN, (IntPtr)key, IntPtr.Zero);
+            Thread.Sleep(100);
+            _ = SendMessage(hWnd, WM_KEYUP, (IntPtr)key, IntPtr.Zero);
 
-                _ = SendMessage(hWnd, WM_KEYDOWN, (IntPtr)key, IntPtr.Zero);
-                Thread.Sleep(100);
-                _ = SendMessage(hWnd, WM_KEYUP, (IntPtr)key, IntPtr.Zero);
-
-                if (mods != null)
-                {
-                    foreach (var mod in mods)
-                        _ = SendMessage(hWnd, WM_KEYUP, (IntPtr)mod, IntPtr.Zero);
-                }
+            if (mods != null)
+            {
+                foreach (var mod in mods)
+                    _ = SendMessage(hWnd, WM_KEYUP, (IntPtr)mod, IntPtr.Zero);
             }
         }
-
-        [DllImport("user32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
     }
+
+    [DllImport("user32.dll")]
+    private static extern int SendMessage(IntPtr hWnd, int wMsg, IntPtr wParam, IntPtr lParam);
 }
