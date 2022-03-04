@@ -31,8 +31,6 @@ namespace SomethingNeedDoing
 
             Service.Plugin = this;
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
-            Service.Address = new PluginAddressResolver();
-            Service.Address.Setup();
 
             Service.ChatManager = new ChatManager();
             Service.EventFrameworkManager = new EventFrameworkManager();

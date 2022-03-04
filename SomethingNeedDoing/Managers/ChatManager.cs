@@ -5,6 +5,7 @@ using System.Threading.Channels;
 
 using Dalamud.Game;
 using Dalamud.Game.Text;
+using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace SomethingNeedDoing.Managers;
@@ -15,15 +16,16 @@ namespace SomethingNeedDoing.Managers;
 internal class ChatManager : IDisposable
 {
     private readonly Channel<string> chatBoxMessages = Channel.CreateUnbounded<string>();
-    private readonly ProcessChatBoxDelegate processChatBox;
+
+    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 48 8B FA 48 8B D9 45 84 C9")]
+    private readonly ProcessChatBoxDelegate processChatBox = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ChatManager"/> class.
     /// </summary>
     public ChatManager()
     {
-        this.processChatBox = Marshal.GetDelegateForFunctionPointer<ProcessChatBoxDelegate>(Service.Address.SendChatAddress);
-
+        SignatureHelper.Initialise(this);
         Service.Framework.Update += this.FrameworkUpdate;
     }
 

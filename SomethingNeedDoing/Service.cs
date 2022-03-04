@@ -28,11 +28,6 @@ namespace SomethingNeedDoing
         internal static SomethingNeedDoingConfiguration Configuration { get; set; } = null!;
 
         /// <summary>
-        /// Gets or sets the plugin address resolver.
-        /// </summary>
-        internal static PluginAddressResolver Address { get; set; } = null!;
-
-        /// <summary>
         /// Gets or sets the plugin chat manager.
         /// </summary>
         internal static ChatManager ChatManager { get; set; } = null!;
