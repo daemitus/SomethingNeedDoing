@@ -111,7 +111,7 @@ internal class ActionCommand : MacroCommand
                 return;
             }
 
-            var dataWaiter = Service.EventFrameworkManager.DataAvailableWaiter;
+            var dataWaiter = Service.GameEventManager.DataAvailableWaiter;
             dataWaiter.Reset();
 
             Service.ChatManager.SendMessage(this.Text);
