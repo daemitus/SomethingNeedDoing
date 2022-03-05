@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -287,6 +287,8 @@ internal class HelpWindow : Window
             ImGui.PopStyleColor();
         }
 
+        #region CraftSkip
+
         var craftSkip = Service.Configuration.CraftSkip;
         if (ImGui.Checkbox("Craft Skip", ref craftSkip))
         {
@@ -295,6 +297,9 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Skip craft actions when not crafting.");
+
+        #endregion
+        #region SmartWait
 
         var smartWait = Service.Configuration.SmartWait;
         if (ImGui.Checkbox("Smart Wait", ref smartWait))
@@ -305,6 +310,9 @@ internal class HelpWindow : Window
 
         DisplayOption("- Intelligently wait for crafting actions to complete instead of using the <wait> or <unsafe> modifiers.");
 
+        #endregion
+        #region QualitySkip
+
         var qualitySkip = Service.Configuration.QualitySkip;
         if (ImGui.Checkbox("Quality Skip", ref qualitySkip))
         {
@@ -313,6 +321,9 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
+
+        #endregion
+        #region LoopTotal
 
         var loopTotal = Service.Configuration.LoopTotal;
         if (ImGui.Checkbox("Loop Total", ref loopTotal))
@@ -323,6 +334,9 @@ internal class HelpWindow : Window
 
         DisplayOption("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
 
+        #endregion
+        #region LoopEcho
+
         var loopEcho = Service.Configuration.LoopEcho;
         if (ImGui.Checkbox("Loop Echo", ref loopEcho))
         {
@@ -331,6 +345,8 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Loop commands will always have an <echo> tag applied.");
+
+        #endregion
 
         ImGui.PopFont();
     }

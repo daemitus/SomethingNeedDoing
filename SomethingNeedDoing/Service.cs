@@ -35,7 +35,7 @@ namespace SomethingNeedDoing
         /// <summary>
         /// Gets or sets the plugin event framework manager.
         /// </summary>
-        internal static EventFrameworkManager EventFrameworkManager { get; set; } = null!;
+        internal static GameEventManager GameEventManager { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the plugin macro manager.

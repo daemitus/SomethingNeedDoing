@@ -33,7 +33,7 @@ namespace SomethingNeedDoing
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);
 
             Service.ChatManager = new ChatManager();
-            Service.EventFrameworkManager = new EventFrameworkManager();
+            Service.GameEventManager = new GameEventManager();
             Service.MacroManager = new MacroManager();
 
             this.macroWindow = new();
@@ -64,7 +64,7 @@ namespace SomethingNeedDoing
             this.windowSystem?.RemoveAllWindows();
 
             Service.MacroManager?.Dispose();
-            Service.EventFrameworkManager?.Dispose();
+            Service.GameEventManager?.Dispose();
             Service.ChatManager?.Dispose();
         }
 

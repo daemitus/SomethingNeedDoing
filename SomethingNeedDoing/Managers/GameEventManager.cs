@@ -1,33 +1,34 @@
 using System;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel.GeneratedSheets;
 using SomethingNeedDoing.CraftingData;
 
 namespace SomethingNeedDoing.Managers;
 
 /// <summary>
-/// Manager that handles the FFXIV Event Framework.
+/// Manager that handles game events.
 /// </summary>
-internal class EventFrameworkManager : IDisposable
+internal class GameEventManager : IDisposable
 {
     // "48 8D 0D ?? ?? ?? ?? 48 8B AC 24 ?? ?? ?? ?? 33 C0";  // g_EventFramework + 0x44
     [Signature("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 54 24 ?? 56 57 41 56 48 83 EC 50", DetourName = nameof(EventFrameworkDetour))]
     private readonly Hook<EventFrameworkDelegate> eventFrameworkHook = null!;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="EventFrameworkManager"/> class.
+    /// Initializes a new instance of the <see cref="GameEventManager"/> class.
     /// </summary>
-    public EventFrameworkManager()
+    public GameEventManager()
     {
         SignatureHelper.Initialise(this);
         this.eventFrameworkHook.Enable();
     }
 
-    private delegate IntPtr EventFrameworkDelegate(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize);
+    private unsafe delegate IntPtr EventFrameworkDelegate(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, CraftingState* dataPtr, byte dataSize);
 
     /// <summary>
     /// Gets a waiter that is released when an action or crafting action is received through the Event Framework.
@@ -46,16 +47,16 @@ internal class EventFrameworkManager : IDisposable
         this.DataAvailableWaiter.Dispose();
     }
 
-    private unsafe IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, IntPtr dataPtr, byte dataSize)
+    private unsafe IntPtr EventFrameworkDetour(IntPtr a1, IntPtr a2, uint a3, ushort a4, IntPtr a5, CraftingState* data, byte dataSize)
     {
         try
         {
             if (dataSize >= 4)
             {
-                var dataType = *(ActionCategory*)dataPtr;
-                if (dataType == ActionCategory.Action || dataType == ActionCategory.CraftAction)
+                if (data->ActionType == ActionType.MainCommand || data->ActionType == ActionType.CraftAction)
                 {
-                    this.CraftingData = *(CraftingState*)dataPtr;
+                    this.CraftingData = *data;
+
                     this.DataAvailableWaiter.Set();
                 }
             }
@@ -65,6 +66,6 @@ internal class EventFrameworkManager : IDisposable
             PluginLog.Error(ex, "Don't crash the game.");
         }
 
-        return this.eventFrameworkHook.Original(a1, a2, a3, a4, a5, dataPtr, dataSize);
+        return this.eventFrameworkHook.Original(a1, a2, a3, a4, a5, data, dataSize);
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
+
+using FFXIVClientStructs.FFXIV.Client.Game;
 
 namespace SomethingNeedDoing.CraftingData;
 
@@ -16,10 +18,10 @@ failure state is only preset for a short time before the values are all reset to
 internal struct CraftingState
 {
     /// <summary>
-    /// Gets the action category.
+    /// Gets the action type.
     /// </summary>
     [FieldOffset(0x0)]
-    public ActionCategory ActionCategory;
+    public ActionType ActionType;
 
     // [FieldOffset(0x04)] public uint Unk04;
     // [FieldOffset(0x08)] public uint Unk08;

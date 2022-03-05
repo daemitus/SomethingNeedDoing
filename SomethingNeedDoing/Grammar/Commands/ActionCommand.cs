@@ -52,6 +52,12 @@ internal class ActionCommand : MacroCommand
     }
 
     /// <summary>
+    /// Gets the event framework data waiter.
+    /// </summary>
+    private static ManualResetEvent DataWaiter
+        => Service.GameEventManager.DataAvailableWaiter;
+
+    /// <summary>
     /// Parse the text as a command.
     /// </summary>
     /// <param name="text">Text to parse.</param>
