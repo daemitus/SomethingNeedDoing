@@ -12,7 +12,7 @@ namespace SomethingNeedDoing.Grammar.Modifiers;
 /// </summary>
 internal class ConditionModifier : MacroModifier
 {
-    private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<names>[a-zA-Z]+((,[a-zA-Z]+)+)?)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+    private static readonly Regex Regex = new(@"(?<modifier><condition\.(?<not>(not\.|\!))?(?<names>[^>]+)>)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly string[] conditions;
     private readonly bool negated;

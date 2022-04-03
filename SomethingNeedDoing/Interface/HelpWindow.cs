@@ -232,7 +232,8 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
-            "2022-03-31",
+            "2022-04-03",
+            "- Fixed condition modifier to work with non-English letters/characters.\n" +
             "- Added an option to disable monospaced font for JP users.\n");
 
         DisplayChangelog(
