@@ -48,6 +48,11 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public bool LoopEcho { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to disable the monospaced font.
+    /// </summary>
+    public bool DisableMonospaced { get; set; } = false;
+
+    /// <summary>
     /// Loads the configuration.
     /// </summary>
     /// <param name="configDirectory">Configuration directory.</param>

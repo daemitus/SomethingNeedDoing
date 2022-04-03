@@ -232,6 +232,10 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-03-31",
+            "- Added an option to disable monospaced font for JP users.\n");
+
+        DisplayChangelog(
             "2022-03-03",
             "- Added an intelligent wait option that waits until your crafting action is complete, rather than what is in the <wait> modifier.\n" +
             "- Updated the <condition> modifier to accept a comma delimited list of names.\n");
@@ -345,6 +349,18 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Loop commands will always have an <echo> tag applied.");
+
+        #endregion
+        #region DisableMonospaced
+
+        var disableMonospaced = Service.Configuration.DisableMonospaced;
+        if (ImGui.Checkbox("Disable Monospaced fonts", ref disableMonospaced))
+        {
+            Service.Configuration.DisableMonospaced = disableMonospaced;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- Use the regular font instead of monospaced in the macro window. This may be handy for JP users so as to prevent missing unicode errors.");
 
         #endregion
 

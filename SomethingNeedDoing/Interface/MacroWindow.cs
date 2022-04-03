@@ -460,7 +460,9 @@ internal class MacroWindow : Window
         }
 
         ImGui.PushItemWidth(-1);
-        ImGui.PushFont(UiBuilder.MonoFont);
+        var useMono = !Service.Configuration.DisableMonospaced;
+        if (useMono)
+            ImGui.PushFont(UiBuilder.MonoFont);
 
         var contents = node.Contents;
         if (ImGui.InputTextMultiline($"##{node.Name}-editor", ref contents, 100_000, new Vector2(-1, -1)))
@@ -469,7 +471,9 @@ internal class MacroWindow : Window
             Service.Configuration.Save();
         }
 
-        ImGui.PopFont();
+        if (useMono)
+            ImGui.PopFont();
+
         ImGui.PopItemWidth();
     }
 
