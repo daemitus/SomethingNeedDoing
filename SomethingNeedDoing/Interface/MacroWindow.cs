@@ -475,7 +475,7 @@ internal class MacroWindow : Window
             ImGui.SameLine();
             string loops = node.Loops.ToString();
             ImGui.PushItemWidth(50);
-            if (ImGui.InputText("Loops (0 = infinite)", ref loops, 100, ImGuiInputTextFlags.CharsDecimal))
+            if (ImGui.InputText("Loops (0 = infinite)", ref loops, 5, ImGuiInputTextFlags.CharsDecimal))
             {
                 node.Loops = loops;
                 Service.Configuration.Save();
