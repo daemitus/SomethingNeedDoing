@@ -438,7 +438,17 @@ internal class MacroWindow : Window
         ImGui.SameLine();
         if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import from clipboard"))
         {
-            var text = ImGui.GetClipboardText();
+            string text;
+            try
+            {
+                text = ImGui.GetClipboardText();
+            }
+            catch (NullReferenceException ex)
+            {
+                text = string.Empty;
+                Service.ChatManager.PrintError($"[SND] Could not import from clipboard.");
+                PluginLog.Error(ex, "Clipboard import error");
+            }
 
             // Replace \r with \r\n, usually from copy/pasting from the in-game macro window
             var rex = new Regex("\r(?!\n)", RegexOptions.Compiled);
