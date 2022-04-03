@@ -232,6 +232,11 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-03-04",
+            "- Added a toggle for each macro to be looped as a crafting macro, waiting for the crafting log and automatically clicking on synthesis.\n" +
+            "- Added an option in the settings to set the crafting loop starting point either at the Synthesis or the Crafting Log.\n");
+
+        DisplayChangelog(
             "2022-03-03",
             "- Added an intelligent wait option that waits until your crafting action is complete, rather than what is in the <wait> modifier.\n" +
             "- Updated the <condition> modifier to accept a comma delimited list of names.\n");
@@ -345,6 +350,18 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Loop commands will always have an <echo> tag applied.");
+
+        #endregion
+        #region LoopFromRecipeNote
+
+        var loopFromRecipeNote = Service.Configuration.LoopFromRecipeNote;
+        if (ImGui.Checkbox("Crafting Loop starts at Crafting Log", ref loopFromRecipeNote))
+        {
+            Service.Configuration.LoopFromRecipeNote = loopFromRecipeNote;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- When enabled crafting loops will start from the opened Crafting Log. Otherwise, will start crafting loops from the opened Synthesis window.");
 
         #endregion
 

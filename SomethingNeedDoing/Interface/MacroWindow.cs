@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Text.RegularExpressions;
 
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using ImGuiNET;
@@ -457,6 +458,48 @@ internal class MacroWindow : Window
         if (ImGuiEx.IconButton(FontAwesomeIcon.TimesCircle, "Close"))
         {
             this.activeMacroNode = null;
+        }
+
+        ImGui.SameLine();
+        if (node.LoopCraftingMacro)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen);
+            if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, "Disable Crafting Loop"))
+            {
+                node.LoopCraftingMacro = false;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+            string loops = node.Loops.ToString();
+            ImGui.PushItemWidth(50);
+            if (ImGui.InputText("Loops (0 = infinite)", ref loops, 100, ImGuiInputTextFlags.CharsDecimal))
+            {
+                node.Loops = loops;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PopItemWidth();
+        }
+        else
+        {
+            string mouseOverToolTip = $"Enable Crafting Loop\nWill automatically add following to your macro:\n";
+            if (Service.Configuration.LoopFromRecipeNote)
+            {
+                mouseOverToolTip += $"- /waitaddon \"RecipeNote\" <maxwait.10>\n- /click \"synthesize\"\n- /waitaddon \"Synthesis\" <maxwait.10>\n- [Your Macro]\n- /loop [Loops]";
+            }
+            else
+            {
+                mouseOverToolTip += $"- [Your Macro]\n- /waitaddon \"RecipeNote\" <maxwait.10>\n- /click \"synthesize\"\n- /waitaddon \"Synthesis\" <maxwait.10>\n- /loop [Loops]";
+            }
+
+            if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, mouseOverToolTip))
+            {
+                node.LoopCraftingMacro = true;
+                Service.Configuration.Save();
+            }
         }
 
         ImGui.PushItemWidth(-1);

@@ -171,12 +171,31 @@ internal partial class MacroManager : IDisposable
         public ActiveMacro(MacroNode node)
         {
             this.Node = node;
-            this.Steps = MacroParser.Parse(node.Contents).ToArray();
+            this.Steps = MacroParser.Parse(node.Contents).ToList();
+
+            if (this.Node.LoopCraftingMacro)
+            {
+                if (Service.Configuration.LoopFromRecipeNote)
+                {
+                    this.Steps.Insert(0, WaitAddonCommand.Parse("/waitaddon \"RecipeNote\" <maxwait.10>"));
+                    this.Steps.Insert(1, ClickCommand.Parse("/click \"synthesize\""));
+                    this.Steps.Insert(2, WaitAddonCommand.Parse("/waitaddon \"Synthesis\" <maxwait.10>"));
+                }
+                else
+                {
+                    this.Steps.Add(WaitAddonCommand.Parse("/waitaddon \"RecipeNote\" <maxwait.10>"));
+                    this.Steps.Add(ClickCommand.Parse("/click \"synthesize\""));
+                    this.Steps.Add(WaitAddonCommand.Parse("/waitaddon \"Synthesis\" <maxwait.10>"));
+                }
+
+                string loops = this.Node.Loops == "0" ? string.Empty : this.Node.Loops;
+                this.Steps.Add(LoopCommand.Parse($"/loop {loops}"));
+            }
         }
 
         public MacroNode Node { get; private set; }
 
-        public MacroCommand[] Steps { get; private set; }
+        public List<MacroCommand> Steps { get; private set; }
 
         public int StepIndex { get; private set; }
 
@@ -192,7 +211,7 @@ internal partial class MacroManager : IDisposable
 
         public MacroCommand? GetCurrentStep()
         {
-            if (this.StepIndex < 0 || this.StepIndex >= this.Steps.Length)
+            if (this.StepIndex < 0 || this.StepIndex >= this.Steps.Count)
                 return null;
 
             return this.Steps[this.StepIndex];

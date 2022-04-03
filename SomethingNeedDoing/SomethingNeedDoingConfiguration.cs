@@ -48,6 +48,11 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public bool LoopEcho { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to start crafting loops from the recipe note window.
+    /// </summary>
+    public bool LoopFromRecipeNote { get; set; } = true;
+
+    /// <summary>
     /// Loads the configuration.
     /// </summary>
     /// <param name="configDirectory">Configuration directory.</param>
