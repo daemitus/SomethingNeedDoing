@@ -14,7 +14,7 @@ internal class WaitModifier : MacroModifier
     private WaitModifier(int wait, int until)
     {
         this.Wait = wait;
-        this.WaitUntil = until;
+        this.Until = until;
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ internal class WaitModifier : MacroModifier
     /// <summary>
     /// Gets the milliseconds to wait until.
     /// </summary>
-    public int WaitUntil { get; }
+    public int Until { get; }
 
     /// <summary>
     /// Parse the text as a modifier.

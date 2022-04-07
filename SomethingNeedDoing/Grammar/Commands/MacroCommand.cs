@@ -21,7 +21,7 @@ internal abstract class MacroCommand
     /// <param name="text">Original line text.</param>
     /// <param name="waitMod">Wait value.</param>
     protected MacroCommand(string text, WaitModifier waitMod)
-        : this(text, waitMod.Wait, waitMod.WaitUntil)
+        : this(text, waitMod.Wait, waitMod.Until)
     {
     }
 
