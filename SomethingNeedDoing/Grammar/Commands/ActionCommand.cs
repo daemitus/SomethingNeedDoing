@@ -212,16 +212,35 @@ internal class ActionCommand : MacroCommand
         }
 
         var addonPtr = (AddonSynthesis*)addon;
-        var stepText = addonPtr->StepNumber->NodeText.ToString().ToLowerInvariant();
-        var hqText = addonPtr->HQPercentage->NodeText.ToString().ToLowerInvariant();
 
+        var stepText = addonPtr->StepNumber->NodeText.ToString().ToLowerInvariant();
         if (!int.TryParse(stepText, out var step))
             throw new MacroCommandError("Could not parse step number in the Synthesis addon");
 
-        if (!int.TryParse(hqText, out var percentHq))
-            throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
+        if (step <= 1)
+            return false;
 
-        return step > 1 && percentHq == 100;
+        var isCollectable = addonPtr->AtkUnitBase.UldManager.NodeList[33]->IsVisible;
+        if (isCollectable)
+        {
+            var curQualityText = addonPtr->CurrentQuality->NodeText.ToString().ToLowerInvariant();
+            if (!int.TryParse(curQualityText, out var curQuality))
+                throw new MacroCommandError("Could not parse current quality number in the Synthesis addon");
+
+            var maxQualityText = addonPtr->MaxQuality->NodeText.ToString().ToLowerInvariant();
+            if (!int.TryParse(maxQualityText, out var maxQuality))
+                throw new MacroCommandError("Could not parse max quality number number in the Synthesis addon");
+
+            return curQuality == maxQuality;
+        }
+        else
+        {
+            var percentHqText = addonPtr->HQPercentage->NodeText.ToString().ToLowerInvariant();
+            if (!int.TryParse(percentHqText, out var percentHq))
+                throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
+
+            return percentHq == 100;
+        }
     }
 
     private static void PopulateCraftingNames()
