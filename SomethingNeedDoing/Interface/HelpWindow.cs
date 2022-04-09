@@ -232,6 +232,10 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-04-04",
+            "- Added macro CraftLoop loop UI options to remove /loop boilerplate (ty darkarchon).\n");
+
+        DisplayChangelog(
             "2022-04-03",
             "- Fixed condition modifier to work with non-English letters/characters.\n" +
             "- Added an option to disable monospaced font for JP users.\n");
@@ -362,6 +366,43 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- Use the regular font instead of monospaced in the macro window. This may be handy for JP users so as to prevent missing unicode errors.");
+
+        #endregion
+        #region CraftLoop
+
+        var craftLoopFromRecipeNote = Service.Configuration.CraftLoopFromRecipeNote;
+        if (ImGui.Checkbox("CraftLoop starts in the Crafting Log", ref craftLoopFromRecipeNote))
+        {
+            Service.Configuration.CraftLoopFromRecipeNote = craftLoopFromRecipeNote;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- When enabled the CraftLoop option will expect the Crafting Log to be visible, otherwise the Synthesis window must be visible.");
+
+        var craftLoopEcho = Service.Configuration.CraftLoopEcho;
+        if (ImGui.Checkbox("CraftLoop echo", ref craftLoopEcho))
+        {
+            Service.Configuration.CraftLoopEcho = craftLoopEcho;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- When enabled the /loop commands supplied by CraftLoop option will an echo modifier.");
+
+        var craftLoopMaxWait = Service.Configuration.CraftLoopMaxWait;
+        ImGui.SetNextItemWidth(50);
+        if (ImGui.InputInt("CraftLoop maxwait", ref craftLoopMaxWait, 0))
+        {
+            if (craftLoopMaxWait < 0)
+                craftLoopMaxWait = 0;
+
+            if (craftLoopMaxWait != Service.Configuration.CraftLoopMaxWait)
+            {
+                Service.Configuration.CraftLoopMaxWait = craftLoopMaxWait;
+                Service.Configuration.Save();
+            }
+        }
+
+        DisplayOption("- The CraftLoop /waitaddon \"...\" <maxwait> modifiers have their maximum wait set to this value.");
 
         #endregion
 

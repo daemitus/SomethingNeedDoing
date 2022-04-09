@@ -29,6 +29,16 @@ public class MacroNode : INode
     /// Gets or sets the contents of the macro.
     /// </summary>
     public string Contents { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this macro should loop automatically.
+    /// </summary>
+    public bool CraftingLoop { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets a value indicating how many loops this macro should run if looping is enabled.
+    /// </summary>
+    public int CraftLoopCount { get; set; } = 0;
 }
 
 /// <summary>

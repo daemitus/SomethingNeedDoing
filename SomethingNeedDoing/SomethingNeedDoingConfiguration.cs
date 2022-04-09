@@ -53,6 +53,21 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public bool DisableMonospaced { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to start crafting loops from the recipe note window.
+    /// </summary>
+    public bool CraftLoopFromRecipeNote { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the maximum wait value for the "CraftLoop" maxwait modifier.
+    /// </summary>
+    public int CraftLoopMaxWait { get; set; } = 5;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the "CraftLoop" loop should have an echo modifier.
+    /// </summary>
+    public bool CraftLoopEcho { get; set; } = false;
+
+    /// <summary>
     /// Loads the configuration.
     /// </summary>
     /// <param name="configDirectory">Configuration directory.</param>

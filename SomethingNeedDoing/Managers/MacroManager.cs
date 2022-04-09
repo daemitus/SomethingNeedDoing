@@ -44,7 +44,7 @@ internal partial class MacroManager : IDisposable
     public LoopState State { get; private set; } = LoopState.Waiting;
 
     /// <summary>
-    /// Gets a value indicating whether the manager should pause at the next /loop command.
+    /// Gets a value indicating whether the manager should pause at the next loop.
     /// </summary>
     public bool PauseAtLoop { get; private set; } = false;
 
@@ -90,9 +90,7 @@ internal partial class MacroManager : IDisposable
                 if (!this.loggedInWaiter.WaitOne(0))
                 {
                     this.State = LoopState.NotLoggedIn;
-
-                    if (this.macroStack.Any())
-                        this.macroStack.Clear();
+                    this.macroStack.Clear();
                 }
 
                 // Wait to be logged in
@@ -171,12 +169,50 @@ internal partial class MacroManager : IDisposable
         public ActiveMacro(MacroNode node)
         {
             this.Node = node;
-            this.Steps = MacroParser.Parse(node.Contents).ToArray();
+            this.Steps = MacroParser.Parse(node.Contents).ToList();
+
+            if (node.CraftingLoop)
+            {
+                var maxwait = Service.Configuration.CraftLoopMaxWait;
+                var maxwaitModifier = maxwait > 0 ? $" <maxwait.{maxwait}>" : string.Empty;
+
+                var steps = new MacroCommand[]
+                {
+                    WaitAddonCommand.Parse($@"/waitaddon ""RecipeNote""{maxwaitModifier}"),
+                    ClickCommand.Parse($@"/click ""synthesize"""),
+                    WaitAddonCommand.Parse($@"/waitaddon ""Synthesis""{maxwaitModifier}"),
+                };
+
+                if (Service.Configuration.CraftLoopFromRecipeNote)
+                {
+                    this.Steps.InsertRange(0, steps);
+                }
+                else
+                {
+                    // No sense in looping afterwards, if no loops are necessary.
+                    if (this.Node.CraftLoopCount != 0)
+                    {
+                        this.Steps.AddRange(steps);
+                    }
+                }
+
+                var loops = this.Node.CraftLoopCount;
+                if (loops > 0 || loops == -1)
+                {
+                    var loopCount = loops > 0 ? $" {loops}" : string.Empty;
+
+                    var echo = Service.Configuration.CraftLoopEcho;
+                    var echoModifier = echo ? $" <echo>" : string.Empty;
+
+                    var loopStep = LoopCommand.Parse($@"/loop{loopCount}{echoModifier}");
+                    this.Steps.Add(loopStep);
+                }
+            }
         }
 
         public MacroNode Node { get; private set; }
 
-        public MacroCommand[] Steps { get; private set; }
+        public List<MacroCommand> Steps { get; private set; }
 
         public int StepIndex { get; private set; }
 
@@ -192,7 +228,7 @@ internal partial class MacroManager : IDisposable
 
         public MacroCommand? GetCurrentStep()
         {
-            if (this.StepIndex < 0 || this.StepIndex >= this.Steps.Length)
+            if (this.StepIndex < 0 || this.StepIndex >= this.Steps.Count)
                 return null;
 
             return this.Steps[this.StepIndex];

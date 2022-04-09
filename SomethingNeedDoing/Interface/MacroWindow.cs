@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using ImGuiNET;
@@ -469,6 +471,79 @@ internal class MacroWindow : Window
             this.activeMacroNode = null;
         }
 
+        var sb = new StringBuilder();
+        sb.AppendLine("Toggle CraftLoop (0=disabled, -1=infinite)");
+        sb.AppendLine($"When enabled, your macro is modified as follows:");
+
+        var maxwaitValue = Service.Configuration.CraftLoopMaxWait;
+        var maxwait = maxwaitValue > 0 ? $" <maxwait.{maxwaitValue}>" : string.Empty;
+        var echo = Service.Configuration.CraftLoopEcho ? " <echo>" : string.Empty;
+        var loopCommand
+            = node.CraftLoopCount == -1 ? $"/loop{echo}"
+            : node.CraftLoopCount > 0 ? $"/loop {node.CraftLoopCount}{echo}"
+            : string.Empty;
+
+        if (Service.Configuration.CraftLoopFromRecipeNote)
+        {
+            sb.AppendLine($@"- /waitaddon ""RecipeNote""{maxwait}");
+            sb.AppendLine($@"- /click ""synthesize""");
+            sb.AppendLine($@"- /waitaddon ""Synthesis""{maxwait}");
+            sb.AppendLine($@"- [Your Macro]");
+            if (loopCommand != string.Empty)
+                sb.AppendLine($@"- {loopCommand}");
+        }
+        else
+        {
+            sb.AppendLine($@"- [Your Macro]");
+            if (node.CraftLoopCount != 0)
+            {
+                sb.AppendLine($@"- /waitaddon ""RecipeNote""{maxwait}");
+                sb.AppendLine($@"- /click ""synthesize""");
+                sb.AppendLine($@"- /waitaddon ""Synthesis""{maxwait}");
+                if (loopCommand != string.Empty)
+                    sb.AppendLine($@"- {loopCommand}");
+            }
+        }
+
+        ImGui.SameLine();
+
+        var enabled = node.CraftingLoop;
+
+        if (enabled)
+            ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen);
+
+        if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, sb.ToString()))
+        {
+            node.CraftingLoop ^= true;
+            Service.Configuration.Save();
+        }
+
+        if (enabled)
+            ImGui.PopStyleColor();
+
+        if (node.CraftingLoop)
+        {
+            ImGui.SameLine();
+            ImGui.PushItemWidth(50);
+
+            var v_min = -1;
+            var v_max = 999;
+            var loops = node.CraftLoopCount;
+            if (ImGui.InputInt("##CraftLoopCount", ref loops, 0) || this.MouseWheelInput(ref loops))
+            {
+                if (loops < v_min)
+                    loops = v_min;
+
+                if (loops > v_max)
+                    loops = v_max;
+
+                node.CraftLoopCount = loops;
+                Service.Configuration.Save();
+            }
+
+            ImGui.PopItemWidth();
+        }
+
         ImGui.PushItemWidth(-1);
         var useMono = !Service.Configuration.DisableMonospaced;
         if (useMono)
@@ -485,6 +560,21 @@ internal class MacroWindow : Window
             ImGui.PopFont();
 
         ImGui.PopItemWidth();
+    }
+
+    private bool MouseWheelInput(ref int iv)
+    {
+        if (ImGui.IsItemHovered())
+        {
+            int mouseDelta = (int)ImGui.GetIO().MouseWheel;  // -1, 0, 1
+            if (mouseDelta != 0)
+            {
+                iv += mouseDelta;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #endregion
