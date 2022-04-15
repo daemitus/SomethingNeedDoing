@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
 
@@ -190,10 +191,10 @@ internal class ActionCommand : MacroCommand
         }
 
         var addonPtr = (AddonSynthesis*)addon;
-        var progressText = addonPtr->CurrentProgress->NodeText.ToString().ToLowerInvariant();
-        var maxProgressText = addonPtr->MaxProgress->NodeText.ToString().ToLowerInvariant();
+        var curProgressText = GetNodeText(addonPtr, 47);
+        var maxProgressText = GetNodeText(addonPtr, 46);
 
-        if (!int.TryParse(progressText, out var progress))
+        if (!int.TryParse(curProgressText, out var progress))
             throw new MacroCommandError("Could not parse progress number in the Synthesis addon");
 
         if (!int.TryParse(maxProgressText, out var maxProgress))
@@ -213,21 +214,21 @@ internal class ActionCommand : MacroCommand
 
         var addonPtr = (AddonSynthesis*)addon;
 
-        var stepText = addonPtr->StepNumber->NodeText.ToString().ToLowerInvariant();
+        var stepText = GetNodeText(addonPtr, 57);
         if (!int.TryParse(stepText, out var step))
             throw new MacroCommandError("Could not parse step number in the Synthesis addon");
 
         if (step <= 1)
             return false;
 
-        var isCollectable = addonPtr->AtkUnitBase.UldManager.NodeList[33]->IsVisible;
+        var isCollectable = GetNode(addonPtr, 34)->IsVisible;
         if (isCollectable)
         {
-            var curQualityText = addonPtr->CurrentQuality->NodeText.ToString().ToLowerInvariant();
+            var curQualityText = GetNodeText(addonPtr, 41);
             if (!int.TryParse(curQualityText, out var curQuality))
                 throw new MacroCommandError("Could not parse current quality number in the Synthesis addon");
 
-            var maxQualityText = addonPtr->MaxQuality->NodeText.ToString().ToLowerInvariant();
+            var maxQualityText = GetNodeText(addonPtr, 40);
             if (!int.TryParse(maxQualityText, out var maxQuality))
                 throw new MacroCommandError("Could not parse max quality number number in the Synthesis addon");
 
@@ -235,12 +236,30 @@ internal class ActionCommand : MacroCommand
         }
         else
         {
-            var percentHqText = addonPtr->HQPercentage->NodeText.ToString().ToLowerInvariant();
+            var percentHqText = GetNodeText(addonPtr, 32);
             if (!int.TryParse(percentHqText, out var percentHq))
                 throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
 
             return percentHq == 100;
         }
+    }
+
+    private static unsafe AtkResNode* GetNode(AddonSynthesis* addon, uint id)
+    {
+        var uld = addon->AtkUnitBase.UldManager;
+        if (uld.NodeListCount < id)
+            throw new IndexOutOfRangeException($"Not enough nodes to fetch {id}");
+
+        return uld.NodeList[id];
+    }
+
+    private static unsafe string GetNodeText(AddonSynthesis* addon, uint id)
+    {
+        var node = (AtkTextNode*)GetNode(addon, id);
+        if (node == null)
+            throw new NullReferenceException($"Node {id} is null");
+
+        return node->NodeText.ToString().ToLowerInvariant();
     }
 
     private static void PopulateCraftingNames()
