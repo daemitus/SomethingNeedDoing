@@ -191,16 +191,9 @@ internal class ActionCommand : MacroCommand
         }
 
         var addonPtr = (AddonSynthesis*)addon;
-        var curProgressText = GetNodeText(addonPtr, 47);
-        var maxProgressText = GetNodeText(addonPtr, 46);
-
-        if (!int.TryParse(curProgressText, out var progress))
-            throw new MacroCommandError("Could not parse progress number in the Synthesis addon");
-
-        if (!int.TryParse(maxProgressText, out var maxProgress))
-            throw new MacroCommandError("Could not parse max progress number in the Synthesis addon");
-
-        return progress == maxProgress;
+        var curProgress = GetNodeTextAsInt(addonPtr->CurrentProgress, "Could not parse progress number in the Synthesis addon");
+        var maxProgress = GetNodeTextAsInt(addonPtr->MaxProgress, "Could not parse max progress number in the Synthesis addon");
+        return curProgress == maxProgress;
     }
 
     private static unsafe bool HasMaxQuality()
@@ -214,52 +207,37 @@ internal class ActionCommand : MacroCommand
 
         var addonPtr = (AddonSynthesis*)addon;
 
-        var stepText = GetNodeText(addonPtr, 57);
-        if (!int.TryParse(stepText, out var step))
-            throw new MacroCommandError("Could not parse step number in the Synthesis addon");
+        var step = GetNodeTextAsInt(addonPtr->StepNumber, "Could not parse step number in the Synthesis addon");
 
         if (step <= 1)
             return false;
 
-        var isCollectable = GetNode(addonPtr, 34)->IsVisible;
+        var isCollectable = addonPtr->AtkUnitBase.UldManager.NodeList[34]->IsVisible;
         if (isCollectable)
         {
-            var curQualityText = GetNodeText(addonPtr, 41);
-            if (!int.TryParse(curQualityText, out var curQuality))
-                throw new MacroCommandError("Could not parse current quality number in the Synthesis addon");
-
-            var maxQualityText = GetNodeText(addonPtr, 40);
-            if (!int.TryParse(maxQualityText, out var maxQuality))
-                throw new MacroCommandError("Could not parse max quality number number in the Synthesis addon");
-
+            var curQuality = GetNodeTextAsInt(addonPtr->CurrentQuality, "Could not parse current quality number in the Synthesis addon");
+            var maxQuality = GetNodeTextAsInt(addonPtr->MaxQuality, "Could not parse max quality number number in the Synthesis addon");
             return curQuality == maxQuality;
         }
         else
         {
-            var percentHqText = GetNodeText(addonPtr, 32);
-            if (!int.TryParse(percentHqText, out var percentHq))
-                throw new MacroCommandError("Could not parse percent hq number in the Synthesis addon");
-
+            var percentHq = GetNodeTextAsInt(addonPtr->HQPercentage, "Could not parse percent hq number in the Synthesis addon");
             return percentHq == 100;
         }
     }
 
-    private static unsafe AtkResNode* GetNode(AddonSynthesis* addon, uint id)
+    private static unsafe int GetNodeTextAsInt(AtkTextNode* node, string error)
     {
-        var uld = addon->AtkUnitBase.UldManager;
-        if (uld.NodeListCount < id)
-            throw new IndexOutOfRangeException($"Not enough nodes to fetch {id}");
-
-        return uld.NodeList[id];
-    }
-
-    private static unsafe string GetNodeText(AddonSynthesis* addon, uint id)
-    {
-        var node = (AtkTextNode*)GetNode(addon, id);
         if (node == null)
-            throw new NullReferenceException($"Node {id} is null");
+            throw new NullReferenceException("Node is null");
 
-        return node->NodeText.ToString().ToLowerInvariant();
+        var text = node->NodeText.ToString().ToLowerInvariant();
+        PluginLog.Debug($"Text value: {text}");
+
+        if (!int.TryParse(text, out var value))
+            throw new MacroCommandError(error);
+
+        return value;
     }
 
     private static void PopulateCraftingNames()
