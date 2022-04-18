@@ -471,46 +471,23 @@ internal class MacroWindow : Window
             this.activeMacroNode = null;
         }
 
-        var sb = new StringBuilder();
-        sb.AppendLine("Toggle CraftLoop (0=disabled, -1=infinite)");
-        sb.AppendLine($"When enabled, your macro is modified as follows:");
-
-        var maxwaitValue = Service.Configuration.CraftLoopMaxWait;
-        var maxwait = maxwaitValue > 0 ? $" <maxwait.{maxwaitValue}>" : string.Empty;
-        var echo = Service.Configuration.CraftLoopEcho ? " <echo>" : string.Empty;
-        var loopCommand
-            = node.CraftLoopCount == -1 ? $"/loop{echo}"
-            : node.CraftLoopCount > 0 ? $"/loop {node.CraftLoopCount}{echo}"
-            : string.Empty;
-
-        if (Service.Configuration.CraftLoopFromRecipeNote)
-        {
-            sb.AppendLine($@"- /waitaddon ""RecipeNote""{maxwait}");
-            sb.AppendLine($@"- /click ""synthesize""");
-            sb.AppendLine($@"- /waitaddon ""Synthesis""{maxwait}");
-            sb.AppendLine($@"- [Your Macro]");
-            if (loopCommand != string.Empty)
-                sb.AppendLine($@"- {loopCommand}");
-        }
-        else
-        {
-            sb.AppendLine($@"- [Your Macro]");
-            if (node.CraftLoopCount != 0)
-            {
-                sb.AppendLine($@"- /waitaddon ""RecipeNote""{maxwait}");
-                sb.AppendLine($@"- /click ""synthesize""");
-                sb.AppendLine($@"- /waitaddon ""Synthesis""{maxwait}");
-                if (loopCommand != string.Empty)
-                    sb.AppendLine($@"- {loopCommand}");
-            }
-        }
-
         ImGui.SameLine();
 
+        var sb = new StringBuilder("Toggle CraftLoop");
         var enabled = node.CraftingLoop;
 
         if (enabled)
+        {
             ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen);
+
+            sb.AppendLine(" (0=disabled, -1=infinite)");
+            sb.AppendLine($"When enabled, your macro is modified as follows:");
+            sb.AppendLine(
+                Service.MacroManager.ModifyMacroForCraftLoop("[YourMacro]", true, node.CraftLoopCount)
+                    .Split("\n")
+                    .Select(l => $"- {l}")
+                    .Aggregate(string.Empty, (s1, s2) => $"{s1}\n{s2}"));
+        }
 
         if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, sb.ToString()))
         {

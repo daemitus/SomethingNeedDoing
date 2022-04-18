@@ -99,7 +99,6 @@ internal class LoopCommand : MacroCommand
         }
 
         Service.MacroManager.Loop();
-
         await this.PerformWait(token);
 
         Service.MacroManager.LoopCheckForPause();

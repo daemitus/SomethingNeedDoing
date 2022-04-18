@@ -240,6 +240,11 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-04-18",
+            "- Added a /craft command to act as a gate at the start of a macro, rather than specifying the number of loops at the end.\n" +
+            "- Removed the \"Loop Total\" option, use the /craft or /gate command instead of this jank.");
+
+        DisplayChangelog(
             "2022-04-04",
             "- Added macro CraftLoop loop UI options to remove /loop boilerplate (ty darkarchon).\n");
 
@@ -340,28 +345,16 @@ internal class HelpWindow : Window
         DisplayOption("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
 
         #endregion
-        #region LoopTotal
-
-        var loopTotal = Service.Configuration.LoopTotal;
-        if (ImGui.Checkbox("Loop Total", ref loopTotal))
-        {
-            Service.Configuration.LoopTotal = loopTotal;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- The numeric option provided to /loop will be considered as the total number of iterations, rather than the amount of times to loop. Internally, this will just subtract 1 from your /loop <amount> command.");
-
-        #endregion
         #region LoopEcho
 
         var loopEcho = Service.Configuration.LoopEcho;
-        if (ImGui.Checkbox("Loop Echo", ref loopEcho))
+        if (ImGui.Checkbox("Craft and Loop Echo", ref loopEcho))
         {
             Service.Configuration.LoopEcho = loopEcho;
             Service.Configuration.Save();
         }
 
-        DisplayOption("- Loop commands will always have an <echo> tag applied.");
+        DisplayOption("- /loop and /craft commands will always have an <echo> tag applied.");
 
         #endregion
         #region DisableMonospaced
@@ -388,13 +381,13 @@ internal class HelpWindow : Window
         DisplayOption("- When enabled the CraftLoop option will expect the Crafting Log to be visible, otherwise the Synthesis window must be visible.");
 
         var craftLoopEcho = Service.Configuration.CraftLoopEcho;
-        if (ImGui.Checkbox("CraftLoop echo", ref craftLoopEcho))
+        if (ImGui.Checkbox("CraftLoop Craft and Loop echo", ref craftLoopEcho))
         {
             Service.Configuration.CraftLoopEcho = craftLoopEcho;
             Service.Configuration.Save();
         }
 
-        DisplayOption("- When enabled the /loop commands supplied by CraftLoop option will an echo modifier.");
+        DisplayOption("- When enabled the /craft or /gate commands supplied by the CraftLoop option will have an echo modifier.");
 
         var craftLoopMaxWait = Service.Configuration.CraftLoopMaxWait;
         ImGui.SetNextItemWidth(50);
