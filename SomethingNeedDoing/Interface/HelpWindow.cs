@@ -38,6 +38,14 @@ internal class HelpWindow : Window
                 "/click synthesize",
             }),
         (
+            "craft", "gate",
+            "Similar to loop but used at the start of a macro with an infinite /loop at the end. Allows a certain amount of executions before stopping the macro.",
+            new[] { "echo", "wait" },
+            new[]
+            {
+                "/craft 10",
+            }),
+        (
             "loop", null,
             "Loop the current macro forever, or a certain amount of times.",
             new[] { "wait", "echo" },
