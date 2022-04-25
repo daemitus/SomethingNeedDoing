@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+
+using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -17,13 +20,10 @@ namespace SomethingNeedDoing.Grammar.Commands;
 internal class RecipeCommand : MacroCommand
 {
     private static readonly Regex Regex = new(@"^/recipe\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly uint InternalAgentID = 23;
-
     private readonly string recipeName;
 
     [Signature("48 89 5C 24 ?? 57 48 83 EC 20 83 B9 ?? ?? ?? ?? ?? 8B FA 48 8B D9 0F 85 ?? ?? ?? ??")]
-    private readonly OpenRecipeNoteDelegate openRecipeNoteFunc = null!;
+    private readonly unsafe delegate* unmanaged<AgentRecipeNote*, uint, void> openRecipeNote = null!;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RecipeCommand"/> class.
@@ -36,10 +36,10 @@ internal class RecipeCommand : MacroCommand
     {
         SignatureHelper.Initialise(this);
 
-        this.recipeName = recipeName;
+        this.recipeName = recipeName.ToLowerInvariant();
     }
 
-    private unsafe delegate void OpenRecipeNoteDelegate(FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentRecipeNote* agent, uint recipeId);
+    private unsafe delegate void OpenRecipeNoteDelegate(AgentRecipeNote* agent, uint recipeId);
 
     /// <summary>
     /// Parse the text as a command.
@@ -64,75 +64,53 @@ internal class RecipeCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        try
-        {
-            var recipeId = this.SearchRecipeId(this.recipeName);
-            if (recipeId == 0)
-               throw new MacroCommandError("Recipe not found");
+        var recipeId = this.SearchRecipeId(this.recipeName);
+        if (recipeId == 0)
+            throw new MacroCommandError("Recipe not found");
 
-            PluginLog.Debug($"RecipeId found : {recipeId}");
-            this.OpenRecipeNote(recipeId);
-        }
-        catch (MacroCommandError)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            PluginLog.Error(ex, "Unexpected click error");
-            throw new MacroCommandError("Unexpected click error", ex);
-        }
+        PluginLog.Debug($"Recipe found: {recipeId}");
+        this.OpenRecipeNote(recipeId);
 
         await this.PerformWait(token);
     }
 
-    private void OpenRecipeNote(uint recipeID)
+    private unsafe void OpenRecipeNote(uint recipeID)
     {
-        unsafe
-        {
-            var uiModule = (FFXIVClientStructs.FFXIV.Client.UI.UIModule*)Service.GameGui.GetUIModule();
-            if (uiModule == null)
-                throw new MacroCommandError("UiModule not found");
-            var agentModule = uiModule->GetAgentModule();
-            if (agentModule == null)
-                throw new MacroCommandError("AgentModule not found");
-            var agent = (FFXIVClientStructs.FFXIV.Client.UI.Agent.AgentRecipeNote*)agentModule->GetAgentByInternalID(InternalAgentID);
-            if (agent == null)
-                throw new MacroCommandError("RecipeNoteAgent not found");
+        var agent = AgentRecipeNote.Instance();
+        if (agent == null)
+            throw new MacroCommandError("AgentRecipeNote not found");
 
-            var internalRecipeID = 0x10000 + recipeID;
-            this.openRecipeNoteFunc(agent, internalRecipeID);
-        }
+        var internalRecipeID = recipeID + 0x10000;
+        this.openRecipeNote(agent, internalRecipeID);
     }
 
     private uint SearchRecipeId(string recipeName)
     {
-        var recipes = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Recipe>()!;
-        var founds = recipes.Where(r => r.ItemResult.Value?.Name.ToString() == recipeName).ToList();
-        switch (founds.Count)
+        var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Recipe>()!;
+        var recipes = sheet.Where(r => r.ItemResult.Value?.Name.ToString().ToLowerInvariant() == recipeName).ToList();
+
+        switch (recipes.Count)
         {
             case 0: return 0;
-            case 1: return founds[0].RowId;
+            case 1: return recipes.First().RowId;
             default:
-                foreach (var recipe in founds)
-                {
-                    if (this.GetClassJobID(recipe) == Service.ClientState.LocalPlayer?.ClassJob.GameData?.RowId)
-                    {
-                        return recipe.RowId;
-                    }
-                }
+                var jobId = Service.ClientState.LocalPlayer?.ClassJob.Id;
 
-                return founds[0].RowId;
+                var recipe = recipes.Where(r => this.GetClassJobID(r) == jobId).FirstOrDefault();
+                if (recipe == default)
+                    return recipes.First().RowId;
+
+                return recipe.RowId;
         }
     }
 
-    private uint GetClassJobID(Lumina.Excel.GeneratedSheets.Recipe recipe)
+    private uint GetClassJobID(Sheets.Recipe recipe)
     {
-        // Name       CraftType   ClassJob
+        // Name           CraftType ClassJob
         // Carpenter      0         8
         // Blacksmith     1         9
         // Armorer        2         10
-        // Goldsmith :    3         11
+        // Goldsmith      3         11
         // Leatherworker  4         12
         // Weaver         5         13
         // Alchemist      6         14
