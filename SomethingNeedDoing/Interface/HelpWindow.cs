@@ -55,6 +55,14 @@ internal class HelpWindow : Window
                 "/loop 5",
             }),
         (
+            "recipe", null,
+            "Open the recipe book to a specific recipe.",
+            new[] { "wait" },
+            new[]
+            {
+                "/recipe \"Tsai tou Vounou\"",
+            }),
+        (
             "require", null,
             "Require a certain effect to be present before continuing.",
             new[] { "wait", "maxwait" },
@@ -238,6 +246,10 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+            "2022-04-25",
+            "- Added a /recipe command to open the recipe book to a specific recipe (ty marimelon).\n");
 
         DisplayChangelog(
             "2022-04-18",
