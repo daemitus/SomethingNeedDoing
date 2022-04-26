@@ -149,6 +149,10 @@ internal partial class MacroManager : IDisposable
         if (step == null)
             return true;
 
+        var attempt = 0;
+
+    restart:
+
         try
         {
             await step.Execute(token);
@@ -156,6 +160,31 @@ internal partial class MacroManager : IDisposable
         catch (GateComplete)
         {
             return true;
+        }
+        catch (MacroActionTimeoutError ex)
+        {
+            var maxRetries = Service.Configuration.MaxTimeoutRetries;
+            var message = $"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})";
+            if (maxRetries == -1)
+            {
+                attempt++;
+                message += ", retrying";
+                Service.ChatManager.PrintError(message);
+                goto restart;
+            }
+            else if (attempt < maxRetries)
+            {
+                attempt++;
+                message += $", retrying ({attempt}/{maxRetries})";
+                Service.ChatManager.PrintError(message);
+                goto restart;
+            }
+            else
+            {
+                Service.ChatManager.PrintError(message);
+                this.pausedWaiter.Reset();
+                return false;
+            }
         }
         catch (MacroCommandError ex)
         {

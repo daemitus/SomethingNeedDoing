@@ -248,6 +248,10 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-04-26",
+            "- Added a max retries option for when an action command does not receive a response within the alloted limit, typically due to lag.\n");
+
+        DisplayChangelog(
             "2022-04-25",
             "- Added a /recipe command to open the recipe book to a specific recipe (ty marimelon).\n");
 
@@ -416,6 +420,22 @@ internal class HelpWindow : Window
         }
 
         DisplayOption("- The CraftLoop /waitaddon \"...\" <maxwait> modifiers have their maximum wait set to this value.");
+
+        #endregion
+        #region MaxTimeoutRetries
+
+        var maxTimeoutRetries = Service.Configuration.MaxTimeoutRetries;
+        ImGui.SetNextItemWidth(50);
+        if (ImGui.InputInt("Action max timeout retries", ref maxTimeoutRetries, 0))
+        {
+            if (maxTimeoutRetries < -1)
+                maxTimeoutRetries = -1;
+
+            Service.Configuration.MaxTimeoutRetries = maxTimeoutRetries;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- The number of times to re-attempt an action command when a timely response is not received. Use -1 for infinite.");
 
         #endregion
 

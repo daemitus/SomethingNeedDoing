@@ -68,6 +68,11 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public bool CraftLoopEcho { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets the maximum number of retries when an action does not receive a timely response.
+    /// </summary>
+    public int MaxTimeoutRetries { get; set; } = 0;
+
+    /// <summary>
     /// Loads the configuration.
     /// </summary>
     /// <param name="configDirectory">Configuration directory.</param>
