@@ -39,8 +39,6 @@ internal class RecipeCommand : MacroCommand
         this.recipeName = recipeName.ToLowerInvariant();
     }
 
-    private unsafe delegate void OpenRecipeNoteDelegate(AgentRecipeNote* agent, uint recipeId);
-
     /// <summary>
     /// Parse the text as a command.
     /// </summary>
