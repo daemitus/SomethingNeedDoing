@@ -22,9 +22,6 @@ internal class RecipeCommand : MacroCommand
     private static readonly Regex Regex = new(@"^/recipe\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private readonly string recipeName;
 
-    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 83 B9 ?? ?? ?? ?? ?? 8B FA 48 8B D9 0F 85 ?? ?? ?? ??")]
-    private readonly unsafe delegate* unmanaged<AgentRecipeNote*, uint, void> openRecipeNote = null!;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="RecipeCommand"/> class.
     /// </summary>
@@ -34,8 +31,6 @@ internal class RecipeCommand : MacroCommand
     private RecipeCommand(string text, string recipeName, WaitModifier wait)
         : base(text, wait)
     {
-        SignatureHelper.Initialise(this);
-
         this.recipeName = recipeName.ToLowerInvariant();
     }
 
@@ -63,10 +58,8 @@ internal class RecipeCommand : MacroCommand
         PluginLog.Debug($"Executing: {this.Text}");
 
         var recipeId = this.SearchRecipeId(this.recipeName);
-        if (recipeId == 0)
-            throw new MacroCommandError("Recipe not found");
-
         PluginLog.Debug($"Recipe found: {recipeId}");
+
         this.OpenRecipeNote(recipeId);
 
         await this.PerformWait(token);
@@ -78,18 +71,17 @@ internal class RecipeCommand : MacroCommand
         if (agent == null)
             throw new MacroCommandError("AgentRecipeNote not found");
 
-        var internalRecipeID = recipeID + 0x10000;
-        this.openRecipeNote(agent, internalRecipeID);
+        agent->OpenRecipeByRecipeId(recipeID);
     }
 
     private uint SearchRecipeId(string recipeName)
     {
-        var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Recipe>()!;
+        var sheet = Service.DataManager.GetExcelSheet<Sheets.Recipe>()!;
         var recipes = sheet.Where(r => r.ItemResult.Value?.Name.ToString().ToLowerInvariant() == recipeName).ToList();
 
         switch (recipes.Count)
         {
-            case 0: return 0;
+            case 0: throw new MacroCommandError("Recipe not found");
             case 1: return recipes.First().RowId;
             default:
                 var jobId = Service.ClientState.LocalPlayer?.ClassJob.Id;
