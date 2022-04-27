@@ -166,14 +166,7 @@ internal partial class MacroManager : IDisposable
         {
             var maxRetries = Service.Configuration.MaxTimeoutRetries;
             var message = $"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})";
-            if (maxRetries == -1)
-            {
-                message += ", retrying";
-                Service.ChatManager.PrintError(message);
-                attempt++;
-                goto restart;
-            }
-            else if (attempt < maxRetries)
+            if (attempt < maxRetries)
             {
                 message += $", retrying ({attempt}/{maxRetries})";
                 Service.ChatManager.PrintError(message);

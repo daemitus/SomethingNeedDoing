@@ -429,14 +429,16 @@ internal class HelpWindow : Window
         ImGui.SetNextItemWidth(50);
         if (ImGui.InputInt("Action max timeout retries", ref maxTimeoutRetries, 0))
         {
-            if (maxTimeoutRetries < -1)
-                maxTimeoutRetries = -1;
+            if (maxTimeoutRetries < 0)
+                maxTimeoutRetries = 0;
+            if (maxTimeoutRetries > 10)
+                maxTimeoutRetries = 10;
 
             Service.Configuration.MaxTimeoutRetries = maxTimeoutRetries;
             Service.Configuration.Save();
         }
 
-        DisplayOption("- The number of times to re-attempt an action command when a timely response is not received. Use -1 for infinite.");
+        DisplayOption("- The number of times to re-attempt an action command when a timely response is not received.");
 
         #endregion
 
