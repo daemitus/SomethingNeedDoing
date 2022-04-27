@@ -249,7 +249,8 @@ internal class HelpWindow : Window
 
         DisplayChangelog(
             "2022-04-26",
-            "- Added a max retries option for when an action command does not receive a response within the alloted limit, typically due to lag.\n");
+            "- Added a max retries option for when an action command does not receive a response within the alloted limit, typically due to lag.\n" +
+            "- Added a noisy errors option to play some beeps when a detectable error occurs.");
 
         DisplayChangelog(
             "2022-04-25",
