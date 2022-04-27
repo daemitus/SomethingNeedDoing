@@ -57,12 +57,21 @@ internal class RecipeCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
+        if (this.AddonSynthesisIsOpen())
+            throw new MacroCommandError("/recipe cannot be used while the Synthesis window is open.");
+
         var recipeId = this.SearchRecipeId(this.recipeName);
         PluginLog.Debug($"Recipe found: {recipeId}");
 
         this.OpenRecipeNote(recipeId);
 
         await this.PerformWait(token);
+    }
+
+    private bool AddonSynthesisIsOpen()
+    {
+        var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
+        return addon != IntPtr.Zero;
     }
 
     private unsafe void OpenRecipeNote(uint recipeID)
