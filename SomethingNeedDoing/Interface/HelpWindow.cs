@@ -439,6 +439,19 @@ internal class HelpWindow : Window
 
         #endregion
 
+        #region NoisyErrors
+
+        var noisyErrors = Service.Configuration.NoisyErrors;
+        if (ImGui.Checkbox("Noisy errors", ref noisyErrors))
+        {
+            Service.Configuration.NoisyErrors = noisyErrors;
+            Service.Configuration.Save();
+        }
+
+        DisplayOption("- When a check fails or error happens, some helpful sounds will play to get your attention.");
+
+        #endregion
+
         ImGui.PopFont();
     }
 

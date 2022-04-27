@@ -138,6 +138,7 @@ internal partial class MacroManager : IDisposable
                 PluginLog.Error(ex, "Unhandled exception occurred");
                 Service.ChatManager.PrintError($"[SomethingNeedDoing] Peon has died unexpectedly.");
                 this.macroStack.Clear();
+                this.PlayErrorSound();
             }
         }
     }
@@ -167,22 +168,23 @@ internal partial class MacroManager : IDisposable
             var message = $"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})";
             if (maxRetries == -1)
             {
-                attempt++;
                 message += ", retrying";
                 Service.ChatManager.PrintError(message);
+                attempt++;
                 goto restart;
             }
             else if (attempt < maxRetries)
             {
-                attempt++;
                 message += $", retrying ({attempt}/{maxRetries})";
                 Service.ChatManager.PrintError(message);
+                attempt++;
                 goto restart;
             }
             else
             {
                 Service.ChatManager.PrintError(message);
                 this.pausedWaiter.Reset();
+                this.PlayErrorSound();
                 return false;
             }
         }
@@ -190,12 +192,22 @@ internal partial class MacroManager : IDisposable
         {
             Service.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
             this.pausedWaiter.Reset();
+            this.PlayErrorSound();
             return false;
         }
 
         macro.NextStep();
 
         return false;
+    }
+
+    private void PlayErrorSound()
+    {
+        if (!Service.Configuration.NoisyErrors)
+            return;
+
+        for (var i = 0; i < 3; i++)
+            Console.Beep(900, 250);
     }
 
     private class ActiveMacro

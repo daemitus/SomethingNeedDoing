@@ -73,6 +73,11 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public int MaxTimeoutRetries { get; set; } = 0;
 
     /// <summary>
+    /// Gets or sets a value indicating whether errors should be audible.
+    /// </summary>
+    public bool NoisyErrors { get; set; } = false;
+
+    /// <summary>
     /// Loads the configuration.
     /// </summary>
     /// <param name="configDirectory">Configuration directory.</param>

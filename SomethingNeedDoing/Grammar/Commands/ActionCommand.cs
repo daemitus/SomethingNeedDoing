@@ -130,7 +130,7 @@ internal class ActionCommand : MacroCommand
                 {
                     // Wait for the data update
                     if (!dataWaiter.WaitOne(SafeCraftMaxWait))
-                        throw new MacroCommandError("Did not receive a timely response");
+                        throw new MacroActionTimeoutError("Did not receive a timely response");
                 }
 
                 while (Service.Condition[ConditionFlag.Crafting40])
@@ -141,7 +141,7 @@ internal class ActionCommand : MacroCommand
                 await this.PerformWait(token);
 
                 if (!this.unsafeMod.IsUnsafe && !dataWaiter.WaitOne(SafeCraftMaxWait))
-                    throw new MacroCommandError("Did not receive a timely response");
+                    throw new MacroActionTimeoutError("Did not receive a timely response");
             }
         }
         else
