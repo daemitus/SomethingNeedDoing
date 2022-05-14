@@ -11,7 +11,7 @@ internal class GateComplete : InvalidOperationException
     /// Initializes a new instance of the <see cref="GateComplete"/> class.
     /// </summary>
     public GateComplete()
-        : base($"Gate reached")
+        : base("Gate reached")
     {
     }
 }

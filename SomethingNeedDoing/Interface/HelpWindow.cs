@@ -71,6 +71,31 @@ internal class HelpWindow : Window
                 "/require \"Well Fed\"",
             }),
         (
+            "requirequality", null,
+            "Require a certain amount of quality be present before continuing.",
+            new[] { "wait", "maxwait" },
+            new[]
+            {
+                "/requirequality 3000",
+            }),
+        (
+            "requirerepair", null,
+            "Pause if an item is at zero durability.",
+            new[] { "wait" },
+            new[]
+            {
+                "/requirerepair",
+            }),
+        (
+            "requirespiritbond", null,
+            "Pause when an item is ready to have materia extracted. Optional argument to keep crafting if the next highest spiritbond is greater-than-or-equal to the argument value.",
+            new[] { "wait" },
+            new[]
+            {
+                "/requirespiritbond",
+                "/requirespiritbond 99.5",
+            }),
+        (
             "requirestats", null,
             "Require a certain amount of stats effect to be present before continuing. Syntax is Craftsmanship, Control, then CP.",
             new[] { "wait", "maxwait" },
@@ -246,6 +271,12 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+            "2022-05-13",
+            "- Added a /requirequality command to require a certain amount of quality before synthesizing.\n" +
+            "- Added a /requirerepair command to pause when an equipped item is broken.\n" +
+            "- Added a /requirespiritbond command to pause when an item can have materia extracted.");
 
         DisplayChangelog(
             "2022-04-26",

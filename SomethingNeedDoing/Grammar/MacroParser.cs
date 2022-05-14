@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 
 using SomethingNeedDoing.Grammar.Commands;
@@ -49,6 +49,9 @@ internal static class MacroParser
                 "/loop" => LoopCommand.Parse(line),
                 "/recipe" => RecipeCommand.Parse(line),
                 "/require" => RequireCommand.Parse(line),
+                "/requirequality" => RequireQualityCommand.Parse(line),
+                "/requirerepair" => RequireRepairCommand.Parse(line),
+                "/requirespiritbond" => RequireSpiritbondCommand.Parse(line),
                 "/requirestats" => RequireStatsCommand.Parse(line),
                 "/runmacro" => RunMacroCommand.Parse(line),
                 "/send" => SendCommand.Parse(line),

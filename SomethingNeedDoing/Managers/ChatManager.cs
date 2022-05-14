@@ -5,6 +5,8 @@ using System.Threading.Channels;
 
 using Dalamud.Game;
 using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.UI;
 
@@ -50,7 +52,7 @@ internal class ChatManager : IDisposable
     /// Print a normal message.
     /// </summary>
     /// <param name="message">The message to print.</param>
-    public void PrintEchoMessage(string message)
+    public void PrintEcho(string message)
         => Service.ChatGui.PrintChat(new XivChatEntry()
         {
             Message = $"[SND] {message}",
@@ -58,11 +60,26 @@ internal class ChatManager : IDisposable
         });
 
     /// <summary>
+    /// Print a happy message.
+    /// </summary>
+    /// <param name="message">The message to print.</param>
+    /// <param name="color">UiColor value.</param>
+    public void PrintColor(string message, UiColor color)
+        => Service.ChatGui.Print(new SeString(
+            new UIForegroundPayload((ushort)color),
+            new TextPayload($"[SND] {message}"),
+            UIForegroundPayload.UIForegroundOff));
+
+    /// <summary>
     /// Print an error message.
     /// </summary>
     /// <param name="message">The message to print.</param>
     public void PrintError(string message)
-        => Service.ChatGui.PrintError($"[SND] {message}");
+        => Service.ChatGui.PrintChat(new XivChatEntry()
+        {
+            Message = $"[SND] {message}",
+            Type = XivChatType.Urgent,
+        });
 
     /// <summary>
     /// Process a command through the chat box.

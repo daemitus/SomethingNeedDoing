@@ -162,6 +162,13 @@ internal partial class MacroManager : IDisposable
         {
             return true;
         }
+        catch (MacroPause ex)
+        {
+            Service.ChatManager.PrintColor($"{ex.Message}", ex.Color);
+            this.pausedWaiter.Reset();
+            this.PlayErrorSound();
+            return false;
+        }
         catch (MacroActionTimeoutError ex)
         {
             var maxRetries = Service.Configuration.MaxTimeoutRetries;
