@@ -1,3 +1,5 @@
+using System.Numerics;
+
 using Dalamud.Interface;
 using ImGuiNET;
 
@@ -37,6 +39,19 @@ internal static class ImGuiEx
             ImGui.BeginTooltip();
             ImGui.TextUnformatted(text);
             ImGui.EndTooltip();
+        }
+    }
+
+    /// <summary>
+    /// Get the current RGBA color for the given widget.
+    /// </summary>
+    /// <param name="col">The type of color to fetch.</param>
+    /// <returns>A RGBA vec4.</returns>
+    public static Vector4 GetStyleColorVec4(ImGuiCol col)
+    {
+        unsafe
+        {
+            return *ImGui.GetStyleColorVec4(ImGuiCol.Button);
         }
     }
 }

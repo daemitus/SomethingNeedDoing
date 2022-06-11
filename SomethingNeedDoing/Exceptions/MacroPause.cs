@@ -1,6 +1,6 @@
 ﻿using System;
 
-using SomethingNeedDoing.Managers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Exceptions;
 

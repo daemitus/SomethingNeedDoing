@@ -9,6 +9,7 @@ using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 using Sheets = Lumina.Excel.GeneratedSheets;
 
@@ -53,7 +54,7 @@ internal class RecipeCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 

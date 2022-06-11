@@ -9,6 +9,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -75,34 +76,17 @@ internal class RequireStatsCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        var (_, hasStats) = await this.LinearWait(StatusCheckInterval, this.maxWait, this.AreStatsGood, token);
+        bool AreStatsGood() => CommandInterface.HasStats(this.requiredCraftsmanship, this.requiredControl, this.requiredCp);
+
+        var hasStats = await this.LinearWait(StatusCheckInterval, this.maxWait, AreStatsGood, token);
 
         if (!hasStats)
             throw new MacroCommandError("Required stats were not found");
 
         await this.PerformWait(token);
-    }
-
-    private unsafe ((uint Craftsmanship, uint Control, uint Cp) Stats, bool HasStats) AreStatsGood()
-    {
-        var stats = (this.requiredCraftsmanship, this.requiredControl, this.requiredCp);
-
-        var uiState = UIState.Instance();
-        if (uiState == null)
-        {
-            PluginLog.Error($"UIState is null");
-            return (stats, false);
-        }
-
-        var hasStats =
-            uiState->PlayerState.Attributes[70] >= this.requiredCraftsmanship &&
-            uiState->PlayerState.Attributes[71] >= this.requiredControl &&
-            uiState->PlayerState.Attributes[11] >= this.requiredCp;
-
-        return (stats, hasStats);
     }
 }

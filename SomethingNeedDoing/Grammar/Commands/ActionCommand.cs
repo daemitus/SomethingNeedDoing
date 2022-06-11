@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
-using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -22,8 +21,6 @@ internal class ActionCommand : MacroCommand
 
     private static readonly Regex Regex = new(@"^/(?:ac|action)\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly HashSet<string> CraftingActionNames = new();
-
-    // For when quality is at 100%, skip it if the action is one of these.
     private static readonly HashSet<string> CraftingQualityActionNames = new();
 
     private readonly string actionName;
@@ -79,7 +76,7 @@ internal class ActionCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
@@ -93,27 +90,26 @@ internal class ActionCommand : MacroCommand
         {
             if (Service.Configuration.CraftSkip)
             {
-                if (IsNotCrafting())
+                if (CommandInterface.IsNotCrafting())
                 {
                     PluginLog.Debug($"Not crafting skip: {this.Text}");
                     return;
                 }
 
-                if (HasMaxProgress())
+                if (CommandInterface.HasMaxProgress())
                 {
                     PluginLog.Debug($"Max progress skip: {this.Text}");
                     return;
                 }
             }
 
-            if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && HasMaxQuality())
+            if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && CommandInterface.HasMaxQuality())
             {
                 PluginLog.Debug($"Max quality skip: {this.Text}");
                 return;
             }
 
-            var dataWaiter = Service.GameEventManager.DataAvailableWaiter;
-            dataWaiter.Reset();
+            DataWaiter.Reset();
 
             Service.ChatManager.SendMessage(this.Text);
 
@@ -129,7 +125,7 @@ internal class ActionCommand : MacroCommand
                 else
                 {
                     // Wait for the data update
-                    if (!dataWaiter.WaitOne(SafeCraftMaxWait))
+                    if (!DataWaiter.WaitOne(SafeCraftMaxWait))
                         throw new MacroActionTimeoutError("Did not receive a timely response");
                 }
 
@@ -140,7 +136,7 @@ internal class ActionCommand : MacroCommand
             {
                 await this.PerformWait(token);
 
-                if (!this.unsafeMod.IsUnsafe && !dataWaiter.WaitOne(SafeCraftMaxWait))
+                if (!this.unsafeMod.IsUnsafe && !DataWaiter.WaitOne(SafeCraftMaxWait))
                     throw new MacroActionTimeoutError("Did not receive a timely response");
             }
         }
@@ -152,95 +148,11 @@ internal class ActionCommand : MacroCommand
         }
     }
 
-    private static bool IsCrafting()
-        => Service.Condition[ConditionFlag.Crafting] && !Service.Condition[ConditionFlag.PreparingToCraft];
-
-    private static bool IsNotCrafting()
-        => !IsCrafting();
-
     private static bool IsCraftingAction(string name)
         => CraftingActionNames.Contains(name);
 
     private static bool IsSkippableCraftingQualityAction(string name)
         => CraftingQualityActionNames.Contains(name);
-
-    private static unsafe bool HasCondition(string condition, bool negated)
-    {
-        if (condition == string.Empty)
-            return true;
-
-        var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
-        if (addon == IntPtr.Zero)
-            throw new MacroCommandError("Could not find Synthesis addon");
-
-        var addonPtr = (AddonSynthesis*)addon;
-        var text = addonPtr->Condition->NodeText.ToString().ToLowerInvariant();
-
-        return negated
-            ? text != condition
-            : text == condition;
-    }
-
-    private static unsafe bool HasMaxProgress()
-    {
-        var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
-        if (addon == IntPtr.Zero)
-        {
-            PluginLog.Debug("Could not find Synthesis addon");
-            return false;
-        }
-
-        var addonPtr = (AddonSynthesis*)addon;
-        var curProgress = GetNodeTextAsInt(addonPtr->CurrentProgress, "Could not parse progress number in the Synthesis addon");
-        var maxProgress = GetNodeTextAsInt(addonPtr->MaxProgress, "Could not parse max progress number in the Synthesis addon");
-        return curProgress == maxProgress;
-    }
-
-    private static unsafe bool HasMaxQuality()
-    {
-        var addon = Service.GameGui.GetAddonByName("Synthesis", 1);
-        if (addon == IntPtr.Zero)
-        {
-            PluginLog.Debug("Could not find Synthesis addon");
-            return false;
-        }
-
-        var addonPtr = (AddonSynthesis*)addon;
-
-        var step = GetNodeTextAsInt(addonPtr->StepNumber, "Could not parse step number in the Synthesis addon");
-
-        if (step <= 1)
-            return false;
-
-        var isCollectable = addonPtr->AtkUnitBase.UldManager.NodeList[34]->IsVisible;
-        if (isCollectable)
-        {
-            var curQuality = GetNodeTextAsInt(addonPtr->CurrentQuality, "Could not parse current quality number in the Synthesis addon");
-            var maxQuality = GetNodeTextAsInt(addonPtr->MaxQuality, "Could not parse max quality number number in the Synthesis addon");
-            return curQuality == maxQuality;
-        }
-        else
-        {
-            var percentHq = GetNodeTextAsInt(addonPtr->HQPercentage, "Could not parse percent hq number in the Synthesis addon");
-            return percentHq == 100;
-        }
-    }
-
-    private static unsafe int GetNodeTextAsInt(AtkTextNode* node, string error)
-    {
-        if (node == null)
-            throw new NullReferenceException("Node is null");
-
-        var text = node->NodeText.ToString().ToLowerInvariant();
-
-        if (!int.TryParse(text, out var value))
-        {
-            PluginLog.Debug($"Bad text value: {text}");
-            throw new MacroCommandError(error);
-        }
-
-        return value;
-    }
 
     private static void PopulateCraftingNames()
     {
@@ -300,16 +212,14 @@ internal class ActionCommand : MacroCommand
         var actions = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()!;
         foreach (var actionID in actionIDs)
         {
-            var row = actions.GetRow(actionID)!;
-            var name = row.Name.RawString.ToLowerInvariant();
+            var name = actions.GetRow(actionID)!.Name.RawString.ToLowerInvariant();
             CraftingQualityActionNames.Add(name);
         }
 
         var craftActions = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.CraftAction>()!;
         foreach (var craftID in craftIDs)
         {
-            var row = craftActions.GetRow(craftID)!;
-            var name = row.Name.RawString.ToLowerInvariant();
+            var name = craftActions.GetRow(craftID)!.Name.RawString.ToLowerInvariant();
             CraftingQualityActionNames.Add(name);
         }
     }

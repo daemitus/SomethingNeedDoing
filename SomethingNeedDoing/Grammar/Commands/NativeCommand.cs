@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -34,7 +35,7 @@ internal class NativeCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 

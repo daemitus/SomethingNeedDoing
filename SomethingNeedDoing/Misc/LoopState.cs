@@ -1,4 +1,4 @@
-﻿namespace SomethingNeedDoing.Managers;
+﻿namespace SomethingNeedDoing.Misc;
 
 /// <summary>
 /// The state of the macro manager.

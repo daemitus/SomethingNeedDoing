@@ -39,6 +39,11 @@ public class MacroNode : INode
     /// Gets or sets a value indicating how many loops this macro should run if looping is enabled.
     /// </summary>
     public int CraftLoopCount { get; set; } = 0;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the macro is a Lua script.
+    /// </summary>
+    public bool IsLua { get; set; } = false;
 }
 
 /// <summary>

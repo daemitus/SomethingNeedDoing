@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -20,7 +21,7 @@ internal class RequireCommand : MacroCommand
 
     private static readonly Regex Regex = new(@"^/require\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    private readonly List<uint> statusIDs;
+    private readonly uint[] statusIDs;
     private readonly int maxWait;
 
     /// <summary>
@@ -38,7 +39,7 @@ internal class RequireCommand : MacroCommand
         this.statusIDs = sheet
             .Where(row => row.Name.RawString.ToLowerInvariant() == statusName)
             .Select(row => row.RowId)
-            .ToList()!;
+            .ToArray()!;
 
         this.maxWait = maxWait.Wait == 0
             ? StatusCheckMaxWait
@@ -65,28 +66,17 @@ internal class RequireCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        var (statusID, hasStatus) = await this.LinearWait(StatusCheckInterval, this.maxWait, this.IsStatusPresent, token);
+        bool IsStatusPresent() => CommandInterface.HasStatusId(this.statusIDs);
+
+        var hasStatus = await this.LinearWait(StatusCheckInterval, this.maxWait, IsStatusPresent, token);
 
         if (!hasStatus)
             throw new MacroCommandError("Status effect not found");
 
         await this.PerformWait(token);
-    }
-
-    private unsafe (uint StatusID, bool HasStatus) IsStatusPresent()
-    {
-        var statusID = Service.ClientState.LocalPlayer!.StatusList
-            .Select(se => se.StatusId)
-            .ToList().Intersect(this.statusIDs)
-            .FirstOrDefault();
-
-        if (statusID == default)
-            return (0, false);
-
-        return (statusID, true);
     }
 }

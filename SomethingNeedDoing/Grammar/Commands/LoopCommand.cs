@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -63,7 +64,7 @@ internal class LoopCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
@@ -98,10 +99,9 @@ internal class LoopCommand : MacroCommand
             }
         }
 
-        Service.MacroManager.Loop();
-        await this.PerformWait(token);
-
+        macro.Loop();
         Service.MacroManager.LoopCheckForPause();
         Service.MacroManager.LoopCheckForStop();
+        await this.PerformWait(token);
     }
 }

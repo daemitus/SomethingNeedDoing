@@ -7,7 +7,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Logging;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Managers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -54,11 +54,11 @@ internal class SendCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        KeyboardManager.Send(this.vkCode);
+        Keyboard.Send(this.vkCode);
 
         await this.PerformWait(token);
     }

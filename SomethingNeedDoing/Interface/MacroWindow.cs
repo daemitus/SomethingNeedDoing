@@ -10,7 +10,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Logging;
 using ImGuiNET;
 using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Managers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -53,19 +53,20 @@ internal class MacroWindow : Window
     public override void Draw()
     {
         ImGui.Columns(2);
-
-        this.DisplayNode(RootFolder);
+        this.DisplayNodeTree();
 
         ImGui.NextColumn();
-
+        this.DisplayMacroControls();
         this.DisplayRunningMacros();
-
         this.DisplayMacroEdit();
 
         ImGui.Columns(1);
     }
 
-    #region node tree
+    private void DisplayNodeTree()
+    {
+        this.DisplayNode(RootFolder);
+    }
 
     private void DisplayNode(INode node)
     {
@@ -93,7 +94,7 @@ internal class MacroWindow : Window
 
         ImGui.TreeNodeEx($"{node.Name}##tree", flags);
 
-        this.NodePopup(node);
+        this.DisplayNodePopup(node);
         this.NodeDragDrop(node);
 
         if (ImGui.IsItemClicked())
@@ -113,7 +114,7 @@ internal class MacroWindow : Window
 
         var expanded = ImGui.TreeNodeEx($"{node.Name}##tree");
 
-        this.NodePopup(node);
+        this.DisplayNodePopup(node);
         this.NodeDragDrop(node);
 
         if (expanded)
@@ -127,29 +128,7 @@ internal class MacroWindow : Window
         }
     }
 
-    private string GetUniqueNodeName(string name)
-    {
-        var nodeNames = Service.Configuration.GetAllNodes().Select(node => node.Name).ToList();
-        while (nodeNames.Contains(name))
-        {
-            Match match = this.incrementalName.Match(name);
-            if (match.Success)
-            {
-                var all = match.Groups["all"].Value;
-                var index = int.Parse(match.Groups["index"].Value);
-                name = name[..^all.Length];
-                name = $"{name} ({index + 1})";
-            }
-            else
-            {
-                name = $"{name} (1)";
-            }
-        }
-
-        return name.Trim();
-    }
-
-    private void NodePopup(INode node)
+    private void DisplayNodePopup(INode node)
     {
         if (ImGui.BeginPopupContextItem($"##{node.Name}-popup"))
         {
@@ -211,98 +190,7 @@ internal class MacroWindow : Window
         }
     }
 
-    private void NodeDragDrop(INode node)
-    {
-        if (node != RootFolder)
-        {
-            if (ImGui.BeginDragDropSource())
-            {
-                this.draggedNode = node;
-                ImGui.Text(node.Name);
-                ImGui.SetDragDropPayload("NodePayload", IntPtr.Zero, 0);
-                ImGui.EndDragDropSource();
-            }
-        }
-
-        if (ImGui.BeginDragDropTarget())
-        {
-            var payload = ImGui.AcceptDragDropPayload("NodePayload");
-
-            bool nullPtr;
-            unsafe
-            {
-                nullPtr = payload.NativePtr == null;
-            }
-
-            var targetNode = node;
-            if (!nullPtr && payload.IsDelivery() && this.draggedNode != null)
-            {
-                if (Service.Configuration.TryFindParent(this.draggedNode, out var draggedNodeParent))
-                {
-                    if (targetNode is FolderNode targetFolderNode)
-                    {
-                        draggedNodeParent!.Children.Remove(this.draggedNode);
-                        targetFolderNode.Children.Add(this.draggedNode);
-                        Service.Configuration.Save();
-                    }
-                    else
-                    {
-                        if (Service.Configuration.TryFindParent(targetNode, out var targetNodeParent))
-                        {
-                            var targetNodeIndex = targetNodeParent!.Children.IndexOf(targetNode);
-                            if (targetNodeParent == draggedNodeParent)
-                            {
-                                var draggedNodeIndex = targetNodeParent.Children.IndexOf(this.draggedNode);
-                                if (draggedNodeIndex < targetNodeIndex)
-                                {
-                                    targetNodeIndex -= 1;
-                                }
-                            }
-
-                            draggedNodeParent!.Children.Remove(this.draggedNode);
-                            targetNodeParent.Children.Insert(targetNodeIndex, this.draggedNode);
-                            Service.Configuration.Save();
-                        }
-                        else
-                        {
-                            throw new Exception($"Could not find parent of node \"{targetNode.Name}\"");
-                        }
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Could not find parent of node \"{this.draggedNode.Name}\"");
-                }
-
-                this.draggedNode = null;
-            }
-
-            ImGui.EndDragDropTarget();
-        }
-    }
-
-    private void RunMacro(MacroNode node)
-    {
-        try
-        {
-            Service.MacroManager.EnqueueMacro(node);
-        }
-        catch (MacroSyntaxError ex)
-        {
-            Service.ChatManager.PrintError($"[SND] {ex.Message}");
-        }
-        catch (Exception ex)
-        {
-            Service.ChatManager.PrintError($"[SND] Unexpected error");
-            PluginLog.Error(ex, "Unexpected error");
-        }
-    }
-
-    #endregion
-
-    #region running macros
-
-    private void DisplayRunningMacros()
+    private void DisplayMacroControls()
     {
         ImGui.Text("Macro Queue");
 
@@ -316,12 +204,7 @@ internal class MacroWindow : Window
             _ => Enum.GetName(state),
         };
 
-        Vector4 buttonCol;
-        unsafe
-        {
-            buttonCol = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
-        }
-
+        var buttonCol = ImGuiEx.GetStyleColorVec4(ImGuiCol.Button);
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, buttonCol);
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonCol);
         ImGui.Button($"{stateName}##LoopState", new Vector2(100, 0));
@@ -375,7 +258,10 @@ internal class MacroWindow : Window
                 Service.MacroManager.Stop(ctrlHeld);
             }
         }
+    }
 
+    private void DisplayRunningMacros()
+    {
         ImGui.PushItemWidth(-1);
 
         var style = ImGui.GetStyle();
@@ -420,10 +306,6 @@ internal class MacroWindow : Window
         ImGui.PopItemWidth();
     }
 
-    #endregion
-
-    #region macro edit
-
     private void DisplayMacroEdit()
     {
         var node = this.activeMacroNode;
@@ -433,9 +315,7 @@ internal class MacroWindow : Window
         ImGui.Text("Macro Editor");
 
         if (ImGuiEx.IconButton(FontAwesomeIcon.Play, "Run"))
-        {
             this.RunMacro(node);
-        }
 
         ImGui.SameLine();
         if (ImGuiEx.IconButton(FontAwesomeIcon.FileImport, "Import from clipboard"))
@@ -471,54 +351,76 @@ internal class MacroWindow : Window
             this.activeMacroNode = null;
         }
 
-        ImGui.SameLine();
-
-        var sb = new StringBuilder("Toggle CraftLoop");
-        var enabled = node.CraftingLoop;
-
-        if (enabled)
+        var luaEnabled = node.IsLua;
+        if (luaEnabled)
         {
             ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen);
-
-            sb.AppendLine(" (0=disabled, -1=infinite)");
-            sb.AppendLine($"When enabled, your macro is modified as follows:");
-            sb.AppendLine(
-                Service.MacroManager.ModifyMacroForCraftLoop("[YourMacro]", true, node.CraftLoopCount)
-                    .Split("\n")
-                    .Select(l => $"- {l}")
-                    .Aggregate(string.Empty, (s1, s2) => $"{s1}\n{s2}"));
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, ImGuiColors.HealerGreen);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, ImGuiColors.ParsedGreen);
         }
 
-        if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, sb.ToString()))
+        ImGui.SameLine();
+        if (ImGuiEx.IconButton(FontAwesomeIcon.Code, "Lua script"))
         {
-            node.CraftingLoop ^= true;
+            node.IsLua ^= true;
             Service.Configuration.Save();
         }
 
-        if (enabled)
-            ImGui.PopStyleColor();
+        if (luaEnabled)
+            ImGui.PopStyleColor(3);
 
-        if (node.CraftingLoop)
+        if (!luaEnabled)
         {
-            ImGui.SameLine();
-            ImGui.PushItemWidth(50);
+            var sb = new StringBuilder("Toggle CraftLoop");
+            var craftLoopEnabled = node.CraftingLoop;
 
-            var v_min = -1;
-            var v_max = 999;
-            var loops = node.CraftLoopCount;
-            if (ImGui.InputInt("##CraftLoopCount", ref loops, 0) || this.MouseWheelInput(ref loops))
+            if (craftLoopEnabled)
             {
-                if (loops < v_min)
-                    loops = v_min;
+                ImGui.PushStyleColor(ImGuiCol.Button, ImGuiColors.HealerGreen);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, ImGuiColors.HealerGreen);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, ImGuiColors.ParsedGreen);
 
-                if (loops > v_max)
-                    loops = v_max;
+                sb.AppendLine(" (0=disabled, -1=infinite)");
+                sb.AppendLine($"When enabled, your macro is modified as follows:");
+                sb.AppendLine(
+                    ActiveMacro.ModifyMacroForCraftLoop("[YourMacro]", true, node.CraftLoopCount)
+                    .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
+                    .Select(line => $"- {line}")
+                    .Aggregate(string.Empty, (s1, s2) => $"{s1}\n{s2}"));
+            }
 
-                node.CraftLoopCount = loops;
+            ImGui.SameLine();
+            if (ImGuiEx.IconButton(FontAwesomeIcon.Sync, sb.ToString()))
+            {
+                node.CraftingLoop ^= true;
                 Service.Configuration.Save();
             }
 
-            ImGui.PopItemWidth();
+            if (craftLoopEnabled)
+                ImGui.PopStyleColor(3);
+
+            if (node.CraftingLoop)
+            {
+                ImGui.SameLine();
+                ImGui.PushItemWidth(50);
+
+                var v_min = -1;
+                var v_max = 999;
+                var loops = node.CraftLoopCount;
+                if (ImGui.InputInt("##CraftLoopCount", ref loops, 0) || this.MouseWheelInput(ref loops))
+                {
+                    if (loops < v_min)
+                        loops = v_min;
+
+                    if (loops > v_max)
+                        loops = v_max;
+
+                    node.CraftLoopCount = loops;
+                    Service.Configuration.Save();
+                }
+
+                ImGui.PopItemWidth();
+            }
         }
 
         ImGui.PushItemWidth(-1);
@@ -539,6 +441,110 @@ internal class MacroWindow : Window
         ImGui.PopItemWidth();
     }
 
+    private string GetUniqueNodeName(string name)
+    {
+        var nodeNames = Service.Configuration.GetAllNodes()
+            .Select(node => node.Name)
+            .ToList();
+
+        while (nodeNames.Contains(name))
+        {
+            var match = this.incrementalName.Match(name);
+            if (match.Success)
+            {
+                var all = match.Groups["all"].Value;
+                var index = int.Parse(match.Groups["index"].Value) + 1;
+                name = name[..^all.Length];
+                name = $"{name} ({index})";
+            }
+            else
+            {
+                name = $"{name} (1)";
+            }
+        }
+
+        return name.Trim();
+    }
+
+    private void NodeDragDrop(INode node)
+    {
+        if (node != RootFolder)
+        {
+            if (ImGui.BeginDragDropSource())
+            {
+                this.draggedNode = node;
+                ImGui.Text(node.Name);
+                ImGui.SetDragDropPayload("NodePayload", IntPtr.Zero, 0);
+                ImGui.EndDragDropSource();
+            }
+        }
+
+        if (ImGui.BeginDragDropTarget())
+        {
+            var payload = ImGui.AcceptDragDropPayload("NodePayload");
+
+            bool nullPtr;
+            unsafe
+            {
+                nullPtr = payload.NativePtr == null;
+            }
+
+            var targetNode = node;
+            if (!nullPtr && payload.IsDelivery() && this.draggedNode != null)
+            {
+                if (!Service.Configuration.TryFindParent(this.draggedNode, out var draggedNodeParent))
+                    throw new Exception($"Could not find parent of node \"{this.draggedNode.Name}\"");
+
+                if (targetNode is FolderNode targetFolderNode)
+                {
+                    draggedNodeParent!.Children.Remove(this.draggedNode);
+                    targetFolderNode.Children.Add(this.draggedNode);
+                    Service.Configuration.Save();
+                }
+                else
+                {
+                    if (!Service.Configuration.TryFindParent(targetNode, out var targetNodeParent))
+                        throw new Exception($"Could not find parent of node \"{targetNode.Name}\"");
+
+                    var targetNodeIndex = targetNodeParent!.Children.IndexOf(targetNode);
+                    if (targetNodeParent == draggedNodeParent)
+                    {
+                        var draggedNodeIndex = targetNodeParent.Children.IndexOf(this.draggedNode);
+                        if (draggedNodeIndex < targetNodeIndex)
+                        {
+                            targetNodeIndex -= 1;
+                        }
+                    }
+
+                    draggedNodeParent!.Children.Remove(this.draggedNode);
+                    targetNodeParent.Children.Insert(targetNodeIndex, this.draggedNode);
+                    Service.Configuration.Save();
+                }
+
+                this.draggedNode = null;
+            }
+
+            ImGui.EndDragDropTarget();
+        }
+    }
+
+    private void RunMacro(MacroNode node)
+    {
+        try
+        {
+            Service.MacroManager.EnqueueMacro(node);
+        }
+        catch (MacroSyntaxError ex)
+        {
+            Service.ChatManager.PrintError($"{ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Service.ChatManager.PrintError($"Unexpected error");
+            PluginLog.Error(ex, "Unexpected error");
+        }
+    }
+
     private bool MouseWheelInput(ref int iv)
     {
         if (ImGui.IsItemHovered())
@@ -553,6 +559,4 @@ internal class MacroWindow : Window
 
         return false;
     }
-
-    #endregion
 }

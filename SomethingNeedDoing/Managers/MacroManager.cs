@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Dalamud.Logging;
+using NLua.Exceptions;
 using SomethingNeedDoing.Exceptions;
-using SomethingNeedDoing.Grammar;
-using SomethingNeedDoing.Grammar.Commands;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Managers;
 
@@ -19,7 +18,6 @@ internal partial class MacroManager : IDisposable
 {
     private readonly Stack<ActiveMacro> macroStack = new();
     private readonly CancellationTokenSource eventLoopTokenSource = new();
-
     private readonly ManualResetEvent loggedInWaiter = new(false);
     private readonly ManualResetEvent pausedWaiter = new(true);
 
@@ -108,7 +106,7 @@ internal partial class MacroManager : IDisposable
                 // Wait for the un-pause button
                 this.pausedWaiter.WaitOne();
 
-                // Grab the first, or go back to being paused
+                // Grab from the stack, or go back to being paused
                 if (!this.macroStack.TryPeek(out var macro))
                 {
                     this.pausedWaiter.Reset();
@@ -118,7 +116,7 @@ internal partial class MacroManager : IDisposable
                 this.State = LoopState.Running;
                 if (await this.ProcessMacro(macro, token))
                 {
-                    this.macroStack.Pop();
+                    this.macroStack.Pop().Dispose();
                 }
             }
             catch (OperationCanceledException)
@@ -136,7 +134,7 @@ internal partial class MacroManager : IDisposable
             catch (Exception ex)
             {
                 PluginLog.Error(ex, "Unhandled exception occurred");
-                Service.ChatManager.PrintError($"[SomethingNeedDoing] Peon has died unexpectedly.");
+                Service.ChatManager.PrintError("Peon has died unexpectedly.");
                 this.macroStack.Clear();
                 this.PlayErrorSound();
             }
@@ -156,7 +154,7 @@ internal partial class MacroManager : IDisposable
 
         try
         {
-            await step.Execute(token);
+            await step.Execute(macro, token);
         }
         catch (GateComplete)
         {
@@ -188,6 +186,13 @@ internal partial class MacroManager : IDisposable
                 return false;
             }
         }
+        catch (LuaScriptException ex)
+        {
+            Service.ChatManager.PrintError($"{ex.Message}: Failure while running script: {ex.Message}");
+            this.pausedWaiter.Reset();
+            this.PlayErrorSound();
+            return false;
+        }
         catch (MacroCommandError ex)
         {
             Service.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
@@ -206,46 +211,12 @@ internal partial class MacroManager : IDisposable
         if (!Service.Configuration.NoisyErrors)
             return;
 
-        for (var i = 0; i < 3; i++)
-            Console.Beep(900, 250);
-    }
+        var count = Service.Configuration.BeepCount;
+        var frequency = Service.Configuration.BeepFrequency;
+        var duration = Service.Configuration.BeepDuration;
 
-    private class ActiveMacro
-    {
-        public ActiveMacro(MacroNode node)
-            : this(node, node.Contents)
-        {
-        }
-
-        public ActiveMacro(MacroNode node, string contents)
-        {
-            this.Node = node;
-            this.Steps = MacroParser.Parse(contents).ToList();
-        }
-
-        public MacroNode Node { get; private set; }
-
-        public List<MacroCommand> Steps { get; private set; }
-
-        public int StepIndex { get; private set; }
-
-        public void NextStep()
-        {
-            this.StepIndex++;
-        }
-
-        public void Loop()
-        {
-            this.StepIndex = -1;
-        }
-
-        public MacroCommand? GetCurrentStep()
-        {
-            if (this.StepIndex < 0 || this.StepIndex >= this.Steps.Count)
-                return null;
-
-            return this.Steps[this.StepIndex];
-        }
+        for (var i = 0; i < count; i++)
+            Console.Beep(frequency, duration);
     }
 }
 
@@ -258,7 +229,9 @@ internal sealed partial class MacroManager
     /// Gets the name and currently executing line of each active macro.
     /// </summary>
     public (string Name, int StepIndex)[] MacroStatus
-        => this.macroStack.Select(macro => (macro.Node.Name, macro.StepIndex + 1)).ToArray();
+        => this.macroStack
+            .Select(macro => (macro.Node.Name, macro.StepIndex + 1))
+            .ToArray();
 
     /// <summary>
     /// Run a macro.
@@ -266,8 +239,7 @@ internal sealed partial class MacroManager
     /// <param name="node">Macro to run.</param>
     public void EnqueueMacro(MacroNode node)
     {
-        var contents = this.ModifyMacroForCraftLoop(node.Contents, node.CraftingLoop, node.CraftLoopCount);
-        this.macroStack.Push(new ActiveMacro(node, contents));
+        this.macroStack.Push(new ActiveMacro(node));
         this.pausedWaiter.Set();
     }
 
@@ -343,29 +315,12 @@ internal sealed partial class MacroManager
     }
 
     /// <summary>
-    /// Loop the currently executing macro.
-    /// </summary>
-    public void Loop()
-    {
-        if (this.macroStack.TryPeek(out var macro))
-        {
-            // While there should always be a macro present, the
-            // stack can be empty if it is cleared during a loop.
-            macro.Loop();
-        }
-    }
-
-    /// <summary>
     /// Proceed to the next step.
     /// </summary>
     public void NextStep()
     {
         if (this.macroStack.TryPeek(out var macro))
-        {
-            // While there should always be a macro present, the
-            // stack can be empty if it is cleared during a loop.
             macro.NextStep();
-        }
     }
 
     /// <summary>
@@ -374,10 +329,10 @@ internal sealed partial class MacroManager
     /// <returns>Macro contents.</returns>
     public string[] CurrentMacroContent()
     {
-        if (this.macroStack.Count == 0)
-            return Array.Empty<string>();
+        if (this.macroStack.TryPeek(out var result))
+            return result.Steps.Select(s => s.ToString()).ToArray();
 
-        return this.macroStack.Peek().Steps.Select(s => s.ToString()).ToArray();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -386,91 +341,9 @@ internal sealed partial class MacroManager
     /// <returns>Macro line number.</returns>
     public int CurrentMacroStep()
     {
-        if (this.macroStack.Count == 0)
-            return 0;
+        if (this.macroStack.TryPeek(out var result))
+            return result.StepIndex;
 
-        return this.macroStack.First().StepIndex;
-    }
-
-    /// <summary>
-    /// Modify a macro for craft looping.
-    /// </summary>
-    /// <param name="contents">Contents of a macroNode.</param>
-    /// <param name="craftLoop">A value indicating whether craftLooping is enabled.</param>
-    /// <param name="craftCount">Amount to craftLoop.</param>
-    /// <returns>The modified macro.</returns>
-    public string ModifyMacroForCraftLoop(string contents, bool craftLoop, int craftCount)
-    {
-        if (!craftLoop)
-            return contents;
-
-        var sb = new StringBuilder();
-
-        var maxwait = Service.Configuration.CraftLoopMaxWait;
-        var maxwaitMod = maxwait > 0 ? $" <maxwait.{maxwait}>" : string.Empty;
-
-        var echo = Service.Configuration.CraftLoopEcho;
-        var echoMod = echo ? $" <echo>" : string.Empty;
-
-        var craftGateStep = Service.Configuration.CraftLoopFromRecipeNote
-            ? $"/craft {craftCount}{echoMod}"
-            : $"/gate {craftCount - 1}{echoMod}";
-
-        var clickSteps = string.Join("\n", new string[]
-        {
-            $@"/waitaddon ""RecipeNote""{maxwaitMod}",
-            $@"/click ""synthesize""",
-            $@"/waitaddon ""Synthesis""{maxwaitMod}",
-        });
-
-        var loopStep = $"/loop{echoMod}";
-
-        if (Service.Configuration.CraftLoopFromRecipeNote)
-        {
-            if (craftCount == -1)
-            {
-                sb.AppendLine(clickSteps);
-                sb.AppendLine(contents);
-                sb.AppendLine(loopStep);
-            }
-            else if (craftCount == 0)
-            {
-                sb.AppendLine(contents);
-            }
-            else if (craftCount == 1)
-            {
-                sb.AppendLine(clickSteps);
-                sb.AppendLine(contents);
-            }
-            else
-            {
-                sb.AppendLine(craftGateStep);
-                sb.AppendLine(clickSteps);
-                sb.AppendLine(contents);
-                sb.AppendLine(loopStep);
-            }
-        }
-        else
-        {
-            if (craftCount == -1)
-            {
-                sb.AppendLine(contents);
-                sb.AppendLine(clickSteps);
-                sb.AppendLine(loopStep);
-            }
-            else if (craftCount == 0 || craftCount == 1)
-            {
-                sb.AppendLine(contents);
-            }
-            else
-            {
-                sb.AppendLine(contents);
-                sb.AppendLine(craftGateStep);
-                sb.AppendLine(clickSteps);
-                sb.AppendLine(loopStep);
-            }
-        }
-
-        return sb.ToString().Trim();
+        return 0;
     }
 }

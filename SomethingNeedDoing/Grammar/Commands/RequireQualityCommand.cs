@@ -11,7 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Managers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -56,39 +56,15 @@ internal class RequireQualityCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        if (!this.IsQualityGood())
+        var current = CommandInterface.GetCurrentQuality();
+
+        if (current < this.requiredQuality)
             throw new MacroPause("Required quality was not found", UiColor.Red);
 
         await this.PerformWait(token);
-    }
-
-    private unsafe bool IsQualityGood()
-    {
-        var addon = Service.GameGui.GetAddonByName("RecipeNote", 1);
-        if (addon == IntPtr.Zero)
-        {
-            PluginLog.Error("AddonRecipeNote was null");
-            return false;
-        }
-
-        var addonPtr = (AddonRecipeNote*)addon;
-        if (addonPtr->Quality == null)
-        {
-            PluginLog.Error("Quality node was null");
-            return false;
-        }
-
-        var qualityStr = addonPtr->Quality->NodeText.ToString();
-        if (!int.TryParse(qualityStr, out var quality))
-        {
-            PluginLog.Error($"Could not parse quality node: '{qualityStr}'");
-            return false;
-        }
-
-        return quality >= this.requiredQuality;
     }
 }

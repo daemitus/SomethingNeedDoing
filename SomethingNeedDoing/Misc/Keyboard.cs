@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -6,12 +6,12 @@ using System.Threading;
 
 using Dalamud.Game.ClientState.Keys;
 
-namespace SomethingNeedDoing.Managers;
+namespace SomethingNeedDoing.Misc;
 
 /// <summary>
 /// Simulate pressing keyboard input.
 /// </summary>
-internal static class KeyboardManager
+internal static class Keyboard
 {
     private static IntPtr? handle = null;
 

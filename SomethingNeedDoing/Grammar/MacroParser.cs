@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 using SomethingNeedDoing.Grammar.Commands;
@@ -32,36 +32,46 @@ internal static class MacroParser
             if (line.StartsWith('#') || line.StartsWith("//"))
                 continue;
 
-            // Extract the slash command
-            var firstSpace = line.IndexOf(' ');
-            var commandText = firstSpace != -1
-                ? line[..firstSpace]
-                : line;
-
-            commandText = commandText.ToLowerInvariant();
-            yield return commandText switch
-            {
-                "/ac" => ActionCommand.Parse(line),
-                "/action" => ActionCommand.Parse(line),
-                "/click" => ClickCommand.Parse(line),
-                "/craft" => GateCommand.Parse(line),
-                "/gate" => GateCommand.Parse(line),
-                "/loop" => LoopCommand.Parse(line),
-                "/recipe" => RecipeCommand.Parse(line),
-                "/require" => RequireCommand.Parse(line),
-                "/requirequality" => RequireQualityCommand.Parse(line),
-                "/requirerepair" => RequireRepairCommand.Parse(line),
-                "/requirespiritbond" => RequireSpiritbondCommand.Parse(line),
-                "/requirestats" => RequireStatsCommand.Parse(line),
-                "/runmacro" => RunMacroCommand.Parse(line),
-                "/send" => SendCommand.Parse(line),
-                "/target" => TargetCommand.Parse(line),
-                "/waitaddon" => WaitAddonCommand.Parse(line),
-                "/wait" => WaitCommand.Parse(line),
-                _ => NativeCommand.Parse(line),
-            };
+            yield return ParseLine(line);
         }
 
         yield break;
+    }
+
+    /// <summary>
+    /// Parse a single macro line and return the appropriate command.
+    /// </summary>
+    /// <param name="line">Text to parse.</param>
+    /// <returns>An executable statement.</returns>
+    public static MacroCommand ParseLine(string line)
+    {
+        // Extract the slash command
+        var firstSpace = line.IndexOf(' ');
+        var commandText = firstSpace != -1
+            ? line[..firstSpace]
+            : line;
+
+        commandText = commandText.ToLowerInvariant();
+        return commandText switch
+        {
+            "/ac" => ActionCommand.Parse(line),
+            "/action" => ActionCommand.Parse(line),
+            "/click" => ClickCommand.Parse(line),
+            "/craft" => GateCommand.Parse(line),
+            "/gate" => GateCommand.Parse(line),
+            "/loop" => LoopCommand.Parse(line),
+            "/recipe" => RecipeCommand.Parse(line),
+            "/require" => RequireCommand.Parse(line),
+            "/requirequality" => RequireQualityCommand.Parse(line),
+            "/requirerepair" => RequireRepairCommand.Parse(line),
+            "/requirespiritbond" => RequireSpiritbondCommand.Parse(line),
+            "/requirestats" => RequireStatsCommand.Parse(line),
+            "/runmacro" => RunMacroCommand.Parse(line),
+            "/send" => SendCommand.Parse(line),
+            "/target" => TargetCommand.Parse(line),
+            "/waitaddon" => WaitAddonCommand.Parse(line),
+            "/wait" => WaitCommand.Parse(line),
+            _ => NativeCommand.Parse(line),
+        };
     }
 }

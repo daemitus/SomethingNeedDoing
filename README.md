@@ -18,3 +18,6 @@ Note: Unless otherwise provided by the game or another plugin, these do not work
 ## In-game usage
 * Type `/pcraft` to pull up the GUI.
 * Type `/pcraft help` for some help.
+
+## Lua functions
+[Go here.](https://github.com/daemitus/SomethingNeedDoing/blob/master/SomethingNeedDoing/Misc/CommandInterface.cs)

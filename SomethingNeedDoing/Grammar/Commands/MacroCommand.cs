@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Dalamud.Logging;
 using SomethingNeedDoing.Grammar.Modifiers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -62,9 +63,10 @@ internal abstract class MacroCommand
     /// <summary>
     /// Execute a macro command.
     /// </summary>
+    /// <param name="macro">The macro being run.</param>
     /// <param name="token">Async cancellation token.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public abstract Task Execute(CancellationToken token);
+    public abstract Task Execute(ActiveMacro macro, CancellationToken token);
 
     /// <summary>
     /// Extract a match group and unquote if necessary.

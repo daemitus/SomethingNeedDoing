@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Interface;
@@ -232,6 +233,7 @@ internal class HelpWindow : Window
                 ("Options", this.DrawOptions),
                 ("Commands", this.DrawCommands),
                 ("Modifiers", this.DrawModifiers),
+                ("Lua", this.DrawLua),
                 ("CLI", this.DrawCli),
                 ("Clicks", this.DrawClicks),
                 ("Sends", this.DrawVirtualKeys),
@@ -271,6 +273,13 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+            "2022-06-10",
+            "- Added a CraftLoop template feature to allow for customization of the loop capability.\n" +
+            "- Added an option to customize the error/notification beeps.\n" +
+            "- Added Lua scripting available as a button next to the CraftLoop buttons.\n" +
+            "- Updated the help window options tab to use collapsing headers.\n");
 
         DisplayChangelog(
             "2022-05-13",
@@ -357,134 +366,194 @@ internal class HelpWindow : Window
             ImGui.PopStyleColor();
         }
 
-        #region CraftSkip
-
-        var craftSkip = Service.Configuration.CraftSkip;
-        if (ImGui.Checkbox("Craft Skip", ref craftSkip))
+        if (ImGui.CollapsingHeader("Crafting skips"))
         {
-            Service.Configuration.CraftSkip = craftSkip;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- Skip craft actions when not crafting.");
-
-        #endregion
-        #region SmartWait
-
-        var smartWait = Service.Configuration.SmartWait;
-        if (ImGui.Checkbox("Smart Wait", ref smartWait))
-        {
-            Service.Configuration.SmartWait = smartWait;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- Intelligently wait for crafting actions to complete instead of using the <wait> or <unsafe> modifiers.");
-
-        #endregion
-        #region QualitySkip
-
-        var qualitySkip = Service.Configuration.QualitySkip;
-        if (ImGui.Checkbox("Quality Skip", ref qualitySkip))
-        {
-            Service.Configuration.QualitySkip = qualitySkip;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
-
-        #endregion
-        #region LoopEcho
-
-        var loopEcho = Service.Configuration.LoopEcho;
-        if (ImGui.Checkbox("Craft and Loop Echo", ref loopEcho))
-        {
-            Service.Configuration.LoopEcho = loopEcho;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- /loop and /craft commands will always have an <echo> tag applied.");
-
-        #endregion
-        #region DisableMonospaced
-
-        var disableMonospaced = Service.Configuration.DisableMonospaced;
-        if (ImGui.Checkbox("Disable Monospaced fonts", ref disableMonospaced))
-        {
-            Service.Configuration.DisableMonospaced = disableMonospaced;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- Use the regular font instead of monospaced in the macro window. This may be handy for JP users so as to prevent missing unicode errors.");
-
-        #endregion
-        #region CraftLoop
-
-        var craftLoopFromRecipeNote = Service.Configuration.CraftLoopFromRecipeNote;
-        if (ImGui.Checkbox("CraftLoop starts in the Crafting Log", ref craftLoopFromRecipeNote))
-        {
-            Service.Configuration.CraftLoopFromRecipeNote = craftLoopFromRecipeNote;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- When enabled the CraftLoop option will expect the Crafting Log to be visible, otherwise the Synthesis window must be visible.");
-
-        var craftLoopEcho = Service.Configuration.CraftLoopEcho;
-        if (ImGui.Checkbox("CraftLoop Craft and Loop echo", ref craftLoopEcho))
-        {
-            Service.Configuration.CraftLoopEcho = craftLoopEcho;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- When enabled the /craft or /gate commands supplied by the CraftLoop option will have an echo modifier.");
-
-        var craftLoopMaxWait = Service.Configuration.CraftLoopMaxWait;
-        ImGui.SetNextItemWidth(50);
-        if (ImGui.InputInt("CraftLoop maxwait", ref craftLoopMaxWait, 0))
-        {
-            if (craftLoopMaxWait < 0)
-                craftLoopMaxWait = 0;
-
-            if (craftLoopMaxWait != Service.Configuration.CraftLoopMaxWait)
+            var craftSkip = Service.Configuration.CraftSkip;
+            if (ImGui.Checkbox("Craft Skip", ref craftSkip))
             {
-                Service.Configuration.CraftLoopMaxWait = craftLoopMaxWait;
+                Service.Configuration.CraftSkip = craftSkip;
                 Service.Configuration.Save();
+            }
+
+            DisplayOption("- Skip craft actions when not crafting.");
+
+            ImGui.Separator();
+
+            var smartWait = Service.Configuration.SmartWait;
+            if (ImGui.Checkbox("Smart Wait", ref smartWait))
+            {
+                Service.Configuration.SmartWait = smartWait;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Intelligently wait for crafting actions to complete instead of using the <wait> or <unsafe> modifiers.");
+
+            ImGui.Separator();
+
+            var qualitySkip = Service.Configuration.QualitySkip;
+            if (ImGui.Checkbox("Quality Skip", ref qualitySkip))
+            {
+                Service.Configuration.QualitySkip = qualitySkip;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Skip quality increasing actions when the HQ chance is at 100%%. If you depend on durability increases from Manipulation towards the end of your macro, you will likely want to disable this.");
+        }
+
+        if (ImGui.CollapsingHeader("Loop echo"))
+        {
+            var loopEcho = Service.Configuration.LoopEcho;
+            if (ImGui.Checkbox("Craft and Loop Echo", ref loopEcho))
+            {
+                Service.Configuration.LoopEcho = loopEcho;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- /loop and /craft commands will always have an <echo> tag applied.");
+        }
+
+        if (ImGui.CollapsingHeader("Action retry"))
+        {
+            ImGui.SetNextItemWidth(50);
+            var maxTimeoutRetries = Service.Configuration.MaxTimeoutRetries;
+            if (ImGui.InputInt("Action max timeout retries", ref maxTimeoutRetries, 0))
+            {
+                if (maxTimeoutRetries < 0)
+                    maxTimeoutRetries = 0;
+                if (maxTimeoutRetries > 10)
+                    maxTimeoutRetries = 10;
+
+                Service.Configuration.MaxTimeoutRetries = maxTimeoutRetries;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- The number of times to re-attempt an action command when a timely response is not received.");
+        }
+
+        if (ImGui.CollapsingHeader("Font"))
+        {
+            var disableMonospaced = Service.Configuration.DisableMonospaced;
+            if (ImGui.Checkbox("Disable Monospaced fonts", ref disableMonospaced))
+            {
+                Service.Configuration.DisableMonospaced = disableMonospaced;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption("- Use the regular font instead of monospaced in the macro window. This may be handy for JP users so as to prevent missing unicode errors.");
+        }
+
+        if (ImGui.CollapsingHeader("Craft loop"))
+        {
+            var useCraftLoopTemplate = Service.Configuration.UseCraftLoopTemplate;
+            if (ImGui.Checkbox("Enable CraftLoop templating", ref useCraftLoopTemplate))
+            {
+                Service.Configuration.UseCraftLoopTemplate = useCraftLoopTemplate;
+                Service.Configuration.Save();
+            }
+
+            DisplayOption($"- When enabled the CraftLoop template will replace various placeholders with values.");
+
+            if (useCraftLoopTemplate)
+            {
+                var craftLoopTemplate = Service.Configuration.CraftLoopTemplate;
+
+                const string macroKeyword = "{{macro}}";
+                const string countKeyword = "{{count}}";
+
+                if (!craftLoopTemplate.Contains(macroKeyword))
+                    ImGui.TextColored(ImGuiColors.DPSRed, $"{macroKeyword} must be present in the template");
+
+                DisplayOption($"- {macroKeyword} inserts the current macro content.");
+                DisplayOption($"- {countKeyword} inserts the loop count for various commands.");
+
+                if (ImGui.InputTextMultiline("CraftLoopTemplate", ref craftLoopTemplate, 100_000, new Vector2(-1, 200)))
+                {
+                    Service.Configuration.CraftLoopTemplate = craftLoopTemplate;
+                    Service.Configuration.Save();
+                }
+            }
+            else
+            {
+                var craftLoopFromRecipeNote = Service.Configuration.CraftLoopFromRecipeNote;
+                if (ImGui.Checkbox("CraftLoop starts in the Crafting Log", ref craftLoopFromRecipeNote))
+                {
+                    Service.Configuration.CraftLoopFromRecipeNote = craftLoopFromRecipeNote;
+                    Service.Configuration.Save();
+                }
+
+                DisplayOption("- When enabled the CraftLoop option will expect the Crafting Log to be visible, otherwise the Synthesis window must be visible.");
+
+                var craftLoopEcho = Service.Configuration.CraftLoopEcho;
+                if (ImGui.Checkbox("CraftLoop Craft and Loop echo", ref craftLoopEcho))
+                {
+                    Service.Configuration.CraftLoopEcho = craftLoopEcho;
+                    Service.Configuration.Save();
+                }
+
+                DisplayOption("- When enabled the /craft or /gate commands supplied by the CraftLoop option will have an echo modifier.");
+
+                ImGui.SetNextItemWidth(50);
+                var craftLoopMaxWait = Service.Configuration.CraftLoopMaxWait;
+                if (ImGui.InputInt("CraftLoop maxwait", ref craftLoopMaxWait, 0))
+                {
+                    if (craftLoopMaxWait < 0)
+                        craftLoopMaxWait = 0;
+
+                    if (craftLoopMaxWait != Service.Configuration.CraftLoopMaxWait)
+                    {
+                        Service.Configuration.CraftLoopMaxWait = craftLoopMaxWait;
+                        Service.Configuration.Save();
+                    }
+                }
+
+                DisplayOption("- The CraftLoop /waitaddon \"...\" <maxwait> modifiers have their maximum wait set to this value.");
             }
         }
 
-        DisplayOption("- The CraftLoop /waitaddon \"...\" <maxwait> modifiers have their maximum wait set to this value.");
-
-        #endregion
-        #region MaxTimeoutRetries
-
-        var maxTimeoutRetries = Service.Configuration.MaxTimeoutRetries;
-        ImGui.SetNextItemWidth(50);
-        if (ImGui.InputInt("Action max timeout retries", ref maxTimeoutRetries, 0))
+        if (ImGui.CollapsingHeader("Error beeps"))
         {
-            if (maxTimeoutRetries < 0)
-                maxTimeoutRetries = 0;
-            if (maxTimeoutRetries > 10)
-                maxTimeoutRetries = 10;
+            var noisyErrors = Service.Configuration.NoisyErrors;
+            if (ImGui.Checkbox("Noisy errors", ref noisyErrors))
+            {
+                Service.Configuration.NoisyErrors = noisyErrors;
+                Service.Configuration.Save();
+            }
 
-            Service.Configuration.MaxTimeoutRetries = maxTimeoutRetries;
-            Service.Configuration.Save();
+            DisplayOption("- When a check fails or error happens, some helpful beeps will play to get your attention.");
+
+            ImGui.SetNextItemWidth(50f);
+            var beepFrequency = Service.Configuration.BeepFrequency;
+            if (ImGui.InputInt("Beep frequency", ref beepFrequency, 0))
+            {
+                Service.Configuration.BeepFrequency = beepFrequency;
+                Service.Configuration.Save();
+            }
+
+            ImGui.SetNextItemWidth(50f);
+            var beepDuration = Service.Configuration.BeepDuration;
+            if (ImGui.InputInt("Beep duration", ref beepDuration, 0))
+            {
+                Service.Configuration.BeepDuration = beepDuration;
+                Service.Configuration.Save();
+            }
+
+            ImGui.SetNextItemWidth(50f);
+            var beepCount = Service.Configuration.BeepCount;
+            if (ImGui.InputInt("Beep count", ref beepCount, 0))
+            {
+                Service.Configuration.BeepCount = beepCount;
+                Service.Configuration.Save();
+            }
+
+            if (ImGui.Button("Beep test"))
+            {
+                Task.Run(() =>
+                {
+                    for (var i = 0; i < beepCount; i++)
+                        Console.Beep(beepFrequency, beepDuration);
+                });
+            }
         }
-
-        DisplayOption("- The number of times to re-attempt an action command when a timely response is not received.");
-
-        #endregion
-
-        #region NoisyErrors
-
-        var noisyErrors = Service.Configuration.NoisyErrors;
-        if (ImGui.Checkbox("Noisy errors", ref noisyErrors))
-        {
-            Service.Configuration.NoisyErrors = noisyErrors;
-            Service.Configuration.Save();
-        }
-
-        DisplayOption("- When a check fails or error happens, some helpful sounds will play to get your attention.");
-
-        #endregion
 
         ImGui.PopFont();
     }
@@ -565,6 +634,68 @@ internal class HelpWindow : Window
 
             ImGui.Separator();
         }
+
+        ImGui.PopFont();
+    }
+
+    private void DrawLua()
+    {
+        ImGui.PushFont(UiBuilder.MonoFont);
+
+        var text = @"
+Lua scripts work by yielding commands back to the macro engine.
+
+For example:
+
+yield(""/ac Muscle memory <wait.3>"")
+yield(""/ac Precise touch <wait.2>"")
+yield(""/echo done!"")
+...and so on.
+
+Documentation for these functions are available at https://github.com/daemitus/SomethingNeedDoing
+
+===Available functions===
+bool IsCrafting()
+bool IsNotCrafting()
+bool IsCollectable()
+
+// lower: Get the condition in lowercase
+string GetCondition(bool lower = true)
+
+// condition: The condition name, as displayed in the UI
+// lower:     Get the condition in lowercase
+bool HasCondition(string condition, bool lower = true)
+
+// returns: (current, max)
+int[] GetProgress()
+
+int GetCurrentProgress()
+int GetMaxProgress()
+bool HasMaxProgress()
+
+// returns: (current, max)
+int[] GetQuality()
+
+int GetCurrentQuality()
+int GetMaxQuality()
+bool HasMaxQuality()
+int GetStep()
+int GetPercentHQ()
+bool NeedsRepair()
+
+// within: Return false if the next highest spiritbond is >= the within value.
+bool CanExtractMateria(float within = 100)
+
+bool HasStats(uint craftsmanship, uint control, uint cp)
+
+// name: status effect name
+bool HasStatus(string name)
+
+// id: status effect id(s).
+bool HasStatusId(uint id, ...)
+".Trim();
+
+        ImGui.TextWrapped(text);
 
         ImGui.PopFont();
     }

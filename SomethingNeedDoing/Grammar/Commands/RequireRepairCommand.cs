@@ -6,7 +6,7 @@ using Dalamud.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar.Modifiers;
-using SomethingNeedDoing.Managers;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Grammar.Commands;
 
@@ -44,48 +44,13 @@ internal class RequireRepairCommand : MacroCommand
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(CancellationToken token)
+    public async override Task Execute(ActiveMacro macro, CancellationToken token)
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        if (this.ShouldRepair())
+        if (CommandInterface.NeedsRepair())
             throw new MacroPause("You need to repair", UiColor.Yellow);
 
         await this.PerformWait(token);
-    }
-
-    private unsafe bool ShouldRepair()
-    {
-        var im = InventoryManager.Instance();
-        if (im == null)
-        {
-            PluginLog.Error("InventoryManager was null");
-            return false;
-        }
-
-        var equipped = im->GetInventoryContainer(InventoryType.EquippedItems);
-        if (equipped == null)
-        {
-            PluginLog.Error("InventoryContainer was null");
-            return false;
-        }
-
-        if (equipped->Loaded == 0)
-        {
-            PluginLog.Error($"InventoryContainer is not loaded");
-            return false;
-        }
-
-        for (var i = 0; i < equipped->Size; i++)
-        {
-            var item = equipped->GetInventorySlot(i);
-            if (item == null)
-                continue;
-
-            if (item->Condition == 0)
-                return true;
-        }
-
-        return false;
     }
 }

@@ -53,6 +53,22 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     public bool DisableMonospaced { get; set; } = false;
 
     /// <summary>
+    /// Gets or sets a value indicating whether to use the "CraftLoop" template.
+    /// </summary>
+    public bool UseCraftLoopTemplate { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the "CraftLoop" template.
+    /// </summary>
+    public string CraftLoopTemplate { get; set; } =
+        "/craft {{count}}\n" +
+        "/waitaddon \"RecipeNote\" <maxwait.5>" +
+        "/click \"synthesize\"" +
+        "/waitaddon \"Synthesis\" <maxwait.5>" +
+        "{{macro}}" +
+        "/loop";
+
+    /// <summary>
     /// Gets or sets a value indicating whether to start crafting loops from the recipe note window.
     /// </summary>
     public bool CraftLoopFromRecipeNote { get; set; } = true;
@@ -76,6 +92,21 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     /// Gets or sets a value indicating whether errors should be audible.
     /// </summary>
     public bool NoisyErrors { get; set; } = false;
+
+    /// <summary>
+    /// Gets or sets the beep frequency.
+    /// </summary>
+    public int BeepFrequency { get; set; } = 900;
+
+    /// <summary>
+    /// Gets or sets the beep duration.
+    /// </summary>
+    public int BeepDuration { get; set; } = 250;
+
+    /// <summary>
+    /// Gets or sets the beep count.
+    /// </summary>
+    public int BeepCount { get; set; } = 3;
 
     /// <summary>
     /// Loads the configuration.
