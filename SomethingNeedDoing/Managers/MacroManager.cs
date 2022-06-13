@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Dalamud.Logging;
 using NLua.Exceptions;
 using SomethingNeedDoing.Exceptions;
+using SomethingNeedDoing.Grammar.Commands;
 using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Managers;
@@ -141,19 +142,17 @@ internal partial class MacroManager : IDisposable
         }
     }
 
-    private async Task<bool> ProcessMacro(ActiveMacro macro, CancellationToken token)
+    private async Task<bool> ProcessMacro(ActiveMacro macro, CancellationToken token, int attempt = 0)
     {
-        var step = macro.GetCurrentStep();
-
-        if (step == null)
-            return true;
-
-        var attempt = 0;
-
-    restart:
+        MacroCommand? step = null;
 
         try
         {
+            step = macro.GetCurrentStep();
+
+            if (step == null)
+                return true;
+
             await step.Execute(macro, token);
         }
         catch (GateComplete)
@@ -170,13 +169,13 @@ internal partial class MacroManager : IDisposable
         catch (MacroActionTimeoutError ex)
         {
             var maxRetries = Service.Configuration.MaxTimeoutRetries;
-            var message = $"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})";
+            var message = $"Failure while running {step} (step {macro.StepIndex + 1}): {ex.Message}";
             if (attempt < maxRetries)
             {
                 message += $", retrying ({attempt}/{maxRetries})";
                 Service.ChatManager.PrintError(message);
                 attempt++;
-                goto restart;
+                return await this.ProcessMacro(macro, token, attempt);
             }
             else
             {
@@ -188,14 +187,14 @@ internal partial class MacroManager : IDisposable
         }
         catch (LuaScriptException ex)
         {
-            Service.ChatManager.PrintError($"{ex.Message}: Failure while running script: {ex.Message}");
+            Service.ChatManager.PrintError($"Failure while running script: {ex.Message}");
             this.pausedWaiter.Reset();
             this.PlayErrorSound();
             return false;
         }
         catch (MacroCommandError ex)
         {
-            Service.ChatManager.PrintError($"{ex.Message}: Failure while running {step} (step {macro.StepIndex + 1})");
+            Service.ChatManager.PrintError($"Failure while running {step} (step {macro.StepIndex + 1}): {ex.Message}");
             this.pausedWaiter.Reset();
             this.PlayErrorSound();
             return false;

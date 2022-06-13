@@ -666,19 +666,17 @@ string GetCondition(bool lower = true)
 // lower:     Get the condition in lowercase
 bool HasCondition(string condition, bool lower = true)
 
-// returns: (current, max)
-int[] GetProgress()
-
-int GetCurrentProgress()
+int GetProgress()
 int GetMaxProgress()
 bool HasMaxProgress()
 
-// returns: (current, max)
-int[] GetQuality()
-
-int GetCurrentQuality()
+int GetQuality()
 int GetMaxQuality()
 bool HasMaxQuality()
+int GetDurability()
+int GetMaxDurability()
+int GetCp()
+int GetMaxCp()
 int GetStep()
 int GetPercentHQ()
 bool NeedsRepair()

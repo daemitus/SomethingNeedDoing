@@ -71,19 +71,10 @@ public static class CommandInterface
     }
 
     /// <summary>
-    /// Get the current and max progress values.
-    /// </summary>
-    /// <returns>The current and max progress.</returns>
-    public static unsafe (int Current, int Max) GetProgress()
-    {
-        return (GetCurrentProgress(), GetMaxProgress());
-    }
-
-    /// <summary>
     /// Get the current progress value.
     /// </summary>
     /// <returns>The current progress value.</returns>
-    public static unsafe int GetCurrentProgress()
+    public static unsafe int GetProgress()
     {
         var addon = GetSynthesisAddon();
         return GetNodeTextAsInt(addon->CurrentProgress, "Could not parse current progress number in the Synthesis addon");
@@ -111,19 +102,10 @@ public static class CommandInterface
     }
 
     /// <summary>
-    /// Get the current and max quality values.
-    /// </summary>
-    /// <returns>The current and max quality.</returns>
-    public static unsafe (int Current, int Max) GetQuality()
-    {
-        return (GetCurrentQuality(), GetMaxQuality());
-    }
-
-    /// <summary>
     /// Get the current quality value.
     /// </summary>
     /// <returns>The current quality value.</returns>
-    public static unsafe int GetCurrentQuality()
+    public static unsafe int GetQuality()
     {
         var addon = GetSynthesisAddon();
         return GetNodeTextAsInt(addon->CurrentQuality, "Could not parse current quality number in the Synthesis addon");
@@ -160,6 +142,46 @@ public static class CommandInterface
             var percentHq = GetPercentHQ();
             return percentHq == 100;
         }
+    }
+
+    /// <summary>
+    /// Get the current durability value.
+    /// </summary>
+    /// <returns>The current durability value.</returns>
+    public static unsafe int GetDurability()
+    {
+        var addon = GetSynthesisAddon();
+        return GetNodeTextAsInt(addon->CurrentDurability, "Could not parse current durability number in the Synthesis addon");
+    }
+
+    /// <summary>
+    /// Get the max durability value.
+    /// </summary>
+    /// <returns>The max durability value.</returns>
+    public static unsafe int GetMaxDurability()
+    {
+        var addon = GetSynthesisAddon();
+        return GetNodeTextAsInt(addon->StartingDurability, "Could not parse max durability number in the Synthesis addon");
+    }
+
+    /// <summary>
+    /// Get the current CP amount.
+    /// </summary>
+    /// <returns>The current CP amount.</returns>
+    public static int GetCp()
+    {
+        var cp = Service.ClientState.LocalPlayer?.CurrentCp ?? 0;
+        return (int)cp;
+    }
+
+    /// <summary>
+    /// Get the max CP amount.
+    /// </summary>
+    /// <returns>The max CP amount.</returns>
+    public static int GetMaxCp()
+    {
+        var cp = Service.ClientState.LocalPlayer?.MaxCp ?? 0;
+        return (int)cp;
     }
 
     /// <summary>

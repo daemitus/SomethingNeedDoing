@@ -14,7 +14,7 @@ namespace SomethingNeedDoing.Misc;
 /// <summary>
 /// A macro node queued for interaction.
 /// </summary>
-internal class ActiveMacro : IDisposable
+internal partial class ActiveMacro : IDisposable
 {
     private Lua? lua;
     private LuaFunction? luaGenerator;
@@ -30,7 +30,6 @@ internal class ActiveMacro : IDisposable
         if (node.IsLua)
         {
             this.Steps = new List<MacroCommand>();
-            this.InitLuaScript();
             return;
         }
 
@@ -71,6 +70,9 @@ internal class ActiveMacro : IDisposable
 
             if (craftCount == 0)
                 return contents;
+
+            if (craftCount == -1)
+                craftCount = 999_999;
 
             if (!template.Contains("{{macro}}"))
                 throw new MacroCommandError("CraftLoop template does not contain the {{macro}} placeholder");
@@ -184,6 +186,9 @@ internal class ActiveMacro : IDisposable
     {
         if (this.Node.IsLua)
         {
+            if (this.lua == null)
+                this.InitLuaScript();
+
             var results = this.luaGenerator!.Call();
             if (results.Length == 0)
                 return null;
@@ -222,15 +227,9 @@ internal class ActiveMacro : IDisposable
         this.lua.LoadCLRPackage();
         RegisterClass(this.lua, typeof(CommandInterface));
 
-        script = @$"
-yield = coroutine.yield
---
-function entrypoint()
-{script}
-end
---
-return coroutine.wrap(entrypoint)";
+        script = string.Format(EntrypointTemplate, script);
 
+        this.lua.DoString(FStringSnippet);
         var results = this.lua.DoString(script);
 
         if (results.Length == 0 || results[0] is not LuaFunction coro)
@@ -238,4 +237,49 @@ return coroutine.wrap(entrypoint)";
 
         this.luaGenerator = coro;
     }
+}
+
+/// <summary>
+/// Lua code snippets.
+/// </summary>
+internal partial class ActiveMacro
+{
+    private const string EntrypointTemplate = @"
+yield = coroutine.yield
+--
+function entrypoint()
+{0}
+end
+--
+return coroutine.wrap(entrypoint)";
+
+    private const string FStringSnippet = @"
+function f(str)
+   local outer_env = _ENV
+   return (str:gsub(""%b{}"", function(block)
+      local code = block:match(""{(.*)}"")
+      local exp_env = {}
+      setmetatable(exp_env, { __index = function(_, k)
+         local stack_level = 5
+         while debug.getinfo(stack_level, """") ~= nil do
+            local i = 1
+            repeat
+               local name, value = debug.getlocal(stack_level, i)
+               if name == k then
+                  return value
+               end
+               i = i + 1
+            until name == nil
+            stack_level = stack_level + 1
+         end
+         return rawget(outer_env, k)
+      end })
+      local fn, err = load(""return ""..code, ""expression `""..code..""`"", ""t"", exp_env)
+      if fn then
+         return tostring(fn())
+      else
+         error(err, 0)
+      end
+   end))
+end";
 }
