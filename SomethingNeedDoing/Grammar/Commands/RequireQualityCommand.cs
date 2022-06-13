@@ -60,7 +60,7 @@ internal class RequireQualityCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        var current = CommandInterface.GetCurrentQuality();
+        var current = CommandInterface.GetQuality();
 
         if (current < this.requiredQuality)
             throw new MacroPause("Required quality was not found", UiColor.Red);

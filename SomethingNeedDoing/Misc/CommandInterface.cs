@@ -97,7 +97,8 @@ public static class CommandInterface
     /// <returns>A value indicating whether max progress has been achieved.</returns>
     public static bool HasMaxProgress()
     {
-        var (current, max) = GetProgress();
+        var current = GetProgress();
+        var max = GetMaxProgress();
         return current == max;
     }
 
@@ -134,7 +135,8 @@ public static class CommandInterface
 
         if (IsCollectable())
         {
-            var (current, max) = GetQuality();
+            var current = GetQuality();
+            var max = GetMaxQuality();
             return current == max;
         }
         else
