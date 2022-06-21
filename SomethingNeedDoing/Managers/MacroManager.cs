@@ -229,6 +229,7 @@ internal sealed partial class MacroManager
     /// </summary>
     public (string Name, int StepIndex)[] MacroStatus
         => this.macroStack
+            .ToArray() // Collection was modified after the enumerator was instantiated.
             .Select(macro => (macro.Node.Name, macro.StepIndex + 1))
             .ToArray();
 
