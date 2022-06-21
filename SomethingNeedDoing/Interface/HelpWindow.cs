@@ -114,12 +114,13 @@ internal class HelpWindow : Window
             }),
         (
             "send", null,
-            "Send an arbitrary keystroke.",
+            "Send an arbitrary keystroke with optional modifiers. Keys are pressed in the same order as the command.",
             new[] { "wait" },
             new[]
             {
                 "/send MULTIPLY",
                 "/send NUMPAD0",
+                "/send CONTROL+MENU+SHIFT+NUMPAD0",
             }),
         (
             "target", null,
@@ -276,6 +277,7 @@ internal class HelpWindow : Window
 
         DisplayChangelog(
             "2022-06-10",
+            "- Updated the Send command to allow for '+' delimited modifiers.\n" +
             "- Added a CraftLoop template feature to allow for customization of the loop capability.\n" +
             "- Added an option to customize the error/notification beeps.\n" +
             "- Added Lua scripting available as a button next to the CraftLoop buttons.\n" +

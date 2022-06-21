@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,18 +19,18 @@ internal class SendCommand : MacroCommand
 {
     private static readonly Regex Regex = new(@"^/send\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    private readonly VirtualKey vkCode;
+    private readonly VirtualKey[] vkCodes;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SendCommand"/> class.
     /// </summary>
     /// <param name="text">Original text.</param>
-    /// <param name="vkCode">VirtualKey code.</param>
+    /// <param name="vkCodes">VirtualKey codes.</param>
     /// <param name="wait">Wait value.</param>
-    private SendCommand(string text, VirtualKey vkCode, WaitModifier wait)
+    private SendCommand(string text, VirtualKey[] vkCodes, WaitModifier wait)
         : base(text, wait)
     {
-        this.vkCode = vkCode;
+        this.vkCodes = vkCodes;
     }
 
     /// <summary>
@@ -46,11 +47,17 @@ internal class SendCommand : MacroCommand
             throw new MacroSyntaxError(text);
 
         var nameValue = ExtractAndUnquote(match, "name");
+        var vkCodes = nameValue.Split("+")
+            .Select(name =>
+            {
+                if (!Enum.TryParse<VirtualKey>(nameValue, true, out var vkCode))
+                    throw new MacroCommandError("Invalid virtual key");
 
-        if (!Enum.TryParse<VirtualKey>(nameValue, true, out var vkCode))
-            throw new MacroCommandError("Invalid virtual key");
+                return vkCode;
+            })
+            .ToArray();
 
-        return new SendCommand(text, vkCode, waitModifier);
+        return new SendCommand(text, vkCodes, waitModifier);
     }
 
     /// <inheritdoc/>
@@ -58,7 +65,16 @@ internal class SendCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        Keyboard.Send(this.vkCode);
+        if (this.vkCodes.Length == 1)
+        {
+            Keyboard.Send(this.vkCodes[0]);
+        }
+        else
+        {
+            var key = this.vkCodes.Last();
+            var mods = this.vkCodes.SkipLast(1);
+            Keyboard.Send(key, mods);
+        }
 
         await this.PerformWait(token);
     }
