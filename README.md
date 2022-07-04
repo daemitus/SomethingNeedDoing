@@ -20,4 +20,4 @@ Note: Unless otherwise provided by the game or another plugin, these do not work
 * Type `/pcraft help` for some help.
 
 ## Lua functions
-[Go here.](https://github.com/daemitus/SomethingNeedDoing/blob/master/SomethingNeedDoing/Misc/CommandInterface.cs)
+[Go here.](https://github.com/daemitus/SomethingNeedDoing/blob/master/SomethingNeedDoing/Misc/ICommandInterface.cs)

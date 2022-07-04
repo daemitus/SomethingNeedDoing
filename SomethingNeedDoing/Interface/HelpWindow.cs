@@ -690,7 +690,8 @@ yield(""/ac Precise touch <wait.2>"")
 yield(""/echo done!"")
 ...and so on.
 
-Documentation for these functions are available at https://github.com/daemitus/SomethingNeedDoing
+Documentation for these functions are available at:
+https://github.com/daemitus/SomethingNeedDoing/blob/master/SomethingNeedDoing/Misc/ICommandInterface.cs
 
 ===Available functions===
 bool IsCrafting()
