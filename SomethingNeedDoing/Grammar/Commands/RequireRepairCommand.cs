@@ -48,7 +48,7 @@ internal class RequireRepairCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        if (CommandInterface.NeedsRepair())
+        if (CommandInterface.Instance.NeedsRepair())
             throw new MacroPause("You need to repair", UiColor.Yellow);
 
         await this.PerformWait(token);

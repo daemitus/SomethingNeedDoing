@@ -217,15 +217,17 @@ internal partial class ActiveMacro : IDisposable
             .Select(line => $"  {line}")
             .Join('\n');
 
-        static void RegisterClass(Lua lua, Type type)
+        static void RegisterClassMethods(Lua lua, Type type)
         {
-            type.GetMethods(BindingFlags.Public | BindingFlags.Static).ToList()
-                .ForEach(method => lua.RegisterFunction(method.Name, method));
+            var isStatic = type.IsAbstract && type.IsSealed;
+            var flags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
+            type.GetMethods(flags).ToList().ForEach(method => lua.RegisterFunction(method.Name, method));
         }
 
         this.lua = new Lua();
         this.lua.LoadCLRPackage();
-        RegisterClass(this.lua, typeof(CommandInterface));
+
+        RegisterClassMethods(this.lua, typeof(CommandInterface));
 
         script = string.Format(EntrypointTemplate, script);
 

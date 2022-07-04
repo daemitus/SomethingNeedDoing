@@ -72,7 +72,7 @@ internal class LoopCommand : MacroCommand
         {
             if (this.echoMod.PerformEcho || Service.Configuration.LoopEcho)
             {
-                Service.ChatManager.PrintEcho("Looping");
+                Service.ChatManager.PrintMessage("Looping");
             }
         }
         else
@@ -81,12 +81,12 @@ internal class LoopCommand : MacroCommand
             {
                 if (this.loopsRemaining == 0)
                 {
-                    Service.ChatManager.PrintEcho("No loops remaining");
+                    Service.ChatManager.PrintMessage("No loops remaining");
                 }
                 else
                 {
                     var noun = this.loopsRemaining == 1 ? "loop" : "loops";
-                    Service.ChatManager.PrintEcho($"{this.loopsRemaining} {noun} remaining");
+                    Service.ChatManager.PrintMessage($"{this.loopsRemaining} {noun} remaining");
                 }
             }
 

@@ -14,42 +14,32 @@ namespace SomethingNeedDoing.Misc;
 /// <summary>
 /// Miscellaneous functions that commands/scripts can use.
 /// </summary>
-public static class CommandInterface
+public class CommandInterface : ICommandInterface
 {
     /// <summary>
-    /// Get a value indicating whether the player is crafting.
+    /// Gets the static instance.
     /// </summary>
-    /// <returns>True or false.</returns>
-    public static unsafe bool IsCrafting()
+    internal static CommandInterface Instance { get; } = new();
+
+    /// <inheritdoc/>
+    public bool IsCrafting()
         => Service.Condition[ConditionFlag.Crafting] && !Service.Condition[ConditionFlag.PreparingToCraft];
 
-    /// <summary>
-    /// Get a value indicating whether the player is not crafting.
-    /// </summary>
-    /// <returns>True or false.</returns>
-    public static unsafe bool IsNotCrafting()
-        => !IsCrafting();
+    /// <inheritdoc/>
+    public bool IsNotCrafting()
+        => !this.IsCrafting();
 
-    /// <summary>
-    /// Get a value indicating whether the current craft is collectable.
-    /// </summary>
-    /// <returns>A value indicating whether the current craft is collectable.</returns>
-    public static unsafe bool IsCollectable()
+    /// <inheritdoc/>
+    public unsafe bool IsCollectable()
     {
-        var addon = GetSynthesisAddon();
-
+        var addon = this.GetSynthesisAddon();
         return addon->AtkUnitBase.UldManager.NodeList[34]->IsVisible;
     }
 
-    /// <summary>
-    /// Get the current synthesis condition.
-    /// </summary>
-    /// <param name="lower">A value indicating whether the result should be lowercased.</param>
-    /// <returns>The current synthesis condition.</returns>
-    public static unsafe string GetCondition(bool lower = true)
+    /// <inheritdoc/>
+    public unsafe string GetCondition(bool lower = true)
     {
-        var addon = GetSynthesisAddon();
-
+        var addon = this.GetSynthesisAddon();
         var text = addon->Condition->NodeText.ToString();
 
         if (lower)
@@ -58,165 +48,116 @@ public static class CommandInterface
         return text;
     }
 
-    /// <summary>
-    /// Get a value indicating whether the current condition is active.
-    /// </summary>
-    /// <param name="condition">The condition to check.</param>
-    /// <param name="lower">A value indicating whether the result should be lowercased.</param>
-    /// <returns>A value indcating whether the current condition is active.</returns>
-    public static bool HasCondition(string condition, bool lower = true)
+    /// <inheritdoc/>
+    public bool HasCondition(string condition, bool lower = true)
     {
-        var actual = GetCondition(lower);
+        var actual = this.GetCondition(lower);
         return condition == actual;
     }
 
-    /// <summary>
-    /// Get the current progress value.
-    /// </summary>
-    /// <returns>The current progress value.</returns>
-    public static unsafe int GetProgress()
+    /// <inheritdoc/>
+    public unsafe int GetProgress()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->CurrentProgress, "Could not parse current progress number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->CurrentProgress, "Could not parse current progress number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get the max progress value.
-    /// </summary>
-    /// <returns>The max progress value.</returns>
-    public static unsafe int GetMaxProgress()
+    /// <inheritdoc/>
+    public unsafe int GetMaxProgress()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->MaxProgress, "Could not parse max progress number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->MaxProgress, "Could not parse max progress number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get a value indicating whether max progress has been achieved.
-    /// This is useful when a crafting animation is finishing.
-    /// </summary>
-    /// <returns>A value indicating whether max progress has been achieved.</returns>
-    public static bool HasMaxProgress()
+    /// <inheritdoc/>
+    public bool HasMaxProgress()
     {
-        var current = GetProgress();
-        var max = GetMaxProgress();
+        var current = this.GetProgress();
+        var max = this.GetMaxProgress();
         return current == max;
     }
 
-    /// <summary>
-    /// Get the current quality value.
-    /// </summary>
-    /// <returns>The current quality value.</returns>
-    public static unsafe int GetQuality()
+    /// <inheritdoc/>
+    public unsafe int GetQuality()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->CurrentQuality, "Could not parse current quality number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->CurrentQuality, "Could not parse current quality number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get the max quality value.
-    /// </summary>
-    /// <returns>The max quality value.</returns>
-    public static unsafe int GetMaxQuality()
+    /// <inheritdoc/>
+    public unsafe int GetMaxQuality()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->MaxQuality, "Could not parse max quality number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->MaxQuality, "Could not parse max quality number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get a value indicating whether max quality has been achieved.
-    /// </summary>
-    /// <returns>A value indicating whether max quality has been achieved.</returns>
-    public static bool HasMaxQuality()
+    /// <inheritdoc/>
+    public bool HasMaxQuality()
     {
-        var step = GetStep();
+        var step = this.GetStep();
 
         if (step <= 1)
             return false;
 
-        if (IsCollectable())
+        if (this.IsCollectable())
         {
-            var current = GetQuality();
-            var max = GetMaxQuality();
+            var current = this.GetQuality();
+            var max = this.GetMaxQuality();
             return current == max;
         }
         else
         {
-            var percentHq = GetPercentHQ();
+            var percentHq = this.GetPercentHQ();
             return percentHq == 100;
         }
     }
 
-    /// <summary>
-    /// Get the current durability value.
-    /// </summary>
-    /// <returns>The current durability value.</returns>
-    public static unsafe int GetDurability()
+    /// <inheritdoc/>
+    public unsafe int GetDurability()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->CurrentDurability, "Could not parse current durability number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->CurrentDurability, "Could not parse current durability number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get the max durability value.
-    /// </summary>
-    /// <returns>The max durability value.</returns>
-    public static unsafe int GetMaxDurability()
+    /// <inheritdoc/>
+    public unsafe int GetMaxDurability()
     {
-        var addon = GetSynthesisAddon();
-        return GetNodeTextAsInt(addon->StartingDurability, "Could not parse max durability number in the Synthesis addon");
+        var addon = this.GetSynthesisAddon();
+        return this.GetNodeTextAsInt(addon->StartingDurability, "Could not parse max durability number in the Synthesis addon");
     }
 
-    /// <summary>
-    /// Get the current CP amount.
-    /// </summary>
-    /// <returns>The current CP amount.</returns>
-    public static int GetCp()
+    /// <inheritdoc/>
+    public int GetCp()
     {
         var cp = Service.ClientState.LocalPlayer?.CurrentCp ?? 0;
         return (int)cp;
     }
 
-    /// <summary>
-    /// Get the max CP amount.
-    /// </summary>
-    /// <returns>The max CP amount.</returns>
-    public static int GetMaxCp()
+    /// <inheritdoc/>
+    public int GetMaxCp()
     {
         var cp = Service.ClientState.LocalPlayer?.MaxCp ?? 0;
         return (int)cp;
     }
 
-    /// <summary>
-    /// Get the current step value.
-    /// </summary>
-    /// <returns>The current step value.</returns>
-    public static unsafe int GetStep()
+    /// <inheritdoc/>
+    public unsafe int GetStep()
     {
-        var addon = GetSynthesisAddon();
-
-        var step = GetNodeTextAsInt(addon->StepNumber, "Could not parse current step number in the Synthesis addon");
-
+        var addon = this.GetSynthesisAddon();
+        var step = this.GetNodeTextAsInt(addon->StepNumber, "Could not parse current step number in the Synthesis addon");
         return step;
     }
 
-    /// <summary>
-    /// Get the current percent HQ (and collectable) value.
-    /// </summary>
-    /// <returns>The current percent HQ value.</returns>
-    public static unsafe int GetPercentHQ()
+    /// <inheritdoc/>
+    public unsafe int GetPercentHQ()
     {
-        var addon = GetSynthesisAddon();
-
-        var step = GetNodeTextAsInt(addon->HQPercentage, "Could not parse percent hq number in the Synthesis addon");
-
+        var addon = this.GetSynthesisAddon();
+        var step = this.GetNodeTextAsInt(addon->HQPercentage, "Could not parse percent hq number in the Synthesis addon");
         return step;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether any of the player's worn equipment is broken.
-    /// </summary>
-    /// <returns>A value indicating whether any of the player's worn equipment is broken.</returns>
-    public static unsafe bool NeedsRepair()
+    /// <inheritdoc/>
+    public unsafe bool NeedsRepair()
     {
         var im = InventoryManager.Instance();
         if (im == null)
@@ -251,12 +192,8 @@ public static class CommandInterface
         return false;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether any of the player's worn equipment can have materia extracted.
-    /// </summary>
-    /// <param name="within">Return false if the next highest spiritbond is >= this value.</param>
-    /// <returns>A value indicating whether any of the player's worn equipment can have materia extracted.</returns>
-    public static unsafe bool CanExtractMateria(float within = 100)
+    /// <inheritdoc/>
+    public unsafe bool CanExtractMateria(float within = 100)
     {
         var im = InventoryManager.Instance();
         if (im == null)
@@ -274,7 +211,7 @@ public static class CommandInterface
 
         if (equipped->Loaded == 0)
         {
-            PluginLog.Error($"InventoryContainer is not loaded");
+            PluginLog.Error("InventoryContainer is not loaded");
             return false;
         }
 
@@ -331,19 +268,13 @@ public static class CommandInterface
         return false;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the required crafting stats have been met.
-    /// </summary>
-    /// <param name="craftsmanship">Craftsmanship.</param>
-    /// <param name="control">Control.</param>
-    /// <param name="cp">Crafting points.</param>
-    /// <returns>A value indcating whether the required crafting stats bave been met.</returns>
-    public static unsafe bool HasStats(uint craftsmanship, uint control, uint cp)
+    /// <inheritdoc/>
+    public unsafe bool HasStats(uint craftsmanship, uint control, uint cp)
     {
         var uiState = UIState.Instance();
         if (uiState == null)
         {
-            PluginLog.Error($"UIState is null");
+            PluginLog.Error("UIState is null");
             return false;
         }
 
@@ -355,12 +286,8 @@ public static class CommandInterface
         return hasStats;
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the given status is present on the player.
-    /// </summary>
-    /// <param name="statusName">Status name.</param>
-    /// <returns>A value indicating whether the given status is present on the player.</returns>
-    public static unsafe bool HasStatus(string statusName)
+    /// <inheritdoc/>
+    public unsafe bool HasStatus(string statusName)
     {
         statusName = statusName.ToLowerInvariant();
         var sheet = Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()!;
@@ -369,15 +296,11 @@ public static class CommandInterface
             .Select(row => row.RowId)
             .ToArray()!;
 
-        return HasStatusId(statusIDs);
+        return this.HasStatusId(statusIDs);
     }
 
-    /// <summary>
-    /// Gets a value indicating whether the given status is present on the player.
-    /// </summary>
-    /// <param name="statusIDs">Status IDs.</param>
-    /// <returns>A value indicating whether the given status is present on the player.</returns>
-    public static unsafe bool HasStatusId(params uint[] statusIDs)
+    /// <inheritdoc/>
+    public unsafe bool HasStatusId(params uint[] statusIDs)
     {
         var statusID = Service.ClientState.LocalPlayer!.StatusList
             .Select(se => se.StatusId)
@@ -387,7 +310,52 @@ public static class CommandInterface
         return statusID != default;
     }
 
-    private static unsafe int GetNodeTextAsInt(AtkTextNode* node, string error)
+    /// <inheritdoc/>
+    public unsafe bool IsAddonVisible(string addonName)
+    {
+        var ptr = Service.GameGui.GetAddonByName(addonName, 1);
+        if (ptr == IntPtr.Zero)
+            return false;
+
+        var addon = (AtkUnitBase*)ptr;
+        return addon->IsVisible;
+    }
+
+    /// <inheritdoc/>
+    public unsafe bool IsAddonReady(string addonName)
+    {
+        var ptr = Service.GameGui.GetAddonByName(addonName, 1);
+        if (ptr == IntPtr.Zero)
+            return false;
+
+        var addon = (AtkUnitBase*)ptr;
+        return addon->UldManager.LoadedState == 3;
+    }
+
+    /// <inheritdoc/>
+    public unsafe string GetNodeText(string addonName, int nodeNumber)
+    {
+        var ptr = Service.GameGui.GetAddonByName(addonName, 1);
+        if (ptr == IntPtr.Zero)
+            throw new MacroCommandError($"Could not find {addonName} addon");
+
+        var addon = (AtkUnitBase*)ptr;
+        var count = addon->UldManager.NodeListCount;
+        if (nodeNumber < 0 || nodeNumber >= count)
+            throw new MacroCommandError($"Addon node number must be between 0 and {count} for the {addonName} addon");
+
+        AtkResNode* node = addon->UldManager.NodeList[nodeNumber];
+        if (node == null)
+            throw new MacroCommandError($"{addonName} addon node[{nodeNumber}] is null");
+
+        if (node->Type != NodeType.Text)
+            throw new MacroCommandError($"{addonName} addon node[{nodeNumber}] is not a text node");
+
+        var textNode = (AtkTextNode*)node;
+        return textNode->NodeText.ToString();
+    }
+
+    private unsafe int GetNodeTextAsInt(AtkTextNode* node, string error)
     {
         try
         {
@@ -404,11 +372,7 @@ public static class CommandInterface
         }
     }
 
-    /// <summary>
-    /// Get a pointer to the Synthesis addon.
-    /// </summary>
-    /// <returns>A valid pointer or throw.</returns>
-    private static unsafe AddonSynthesis* GetSynthesisAddon()
+    private unsafe AddonSynthesis* GetSynthesisAddon()
     {
         var ptr = Service.GameGui.GetAddonByName("Synthesis", 1);
         if (ptr == IntPtr.Zero)

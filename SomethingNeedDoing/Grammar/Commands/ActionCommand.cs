@@ -90,20 +90,20 @@ internal class ActionCommand : MacroCommand
         {
             if (Service.Configuration.CraftSkip)
             {
-                if (CommandInterface.IsNotCrafting())
+                if (CommandInterface.Instance.IsNotCrafting())
                 {
                     PluginLog.Debug($"Not crafting skip: {this.Text}");
                     return;
                 }
 
-                if (CommandInterface.HasMaxProgress())
+                if (CommandInterface.Instance.HasMaxProgress())
                 {
                     PluginLog.Debug($"Max progress skip: {this.Text}");
                     return;
                 }
             }
 
-            if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && CommandInterface.HasMaxQuality())
+            if (Service.Configuration.QualitySkip && IsSkippableCraftingQualityAction(this.actionName) && CommandInterface.Instance.HasMaxQuality())
             {
                 PluginLog.Debug($"Max quality skip: {this.Text}");
                 return;

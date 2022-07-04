@@ -57,7 +57,7 @@ internal class RequireSpiritbondCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        if (CommandInterface.CanExtractMateria(this.within))
+        if (CommandInterface.Instance.CanExtractMateria(this.within))
             throw new MacroPause("You can extract materia now", UiColor.Green);
 
         await this.PerformWait(token);

@@ -80,7 +80,7 @@ internal class RequireStatsCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        bool AreStatsGood() => CommandInterface.HasStats(this.requiredCraftsmanship, this.requiredControl, this.requiredCp);
+        bool AreStatsGood() => CommandInterface.Instance.HasStats(this.requiredCraftsmanship, this.requiredControl, this.requiredCp);
 
         var hasStats = await this.LinearWait(StatusCheckInterval, this.maxWait, AreStatsGood, token);
 

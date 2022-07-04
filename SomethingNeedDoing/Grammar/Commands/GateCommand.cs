@@ -66,12 +66,12 @@ internal class GateCommand : MacroCommand
         {
             if (this.craftsRemaining == 0)
             {
-                Service.ChatManager.PrintEcho("No crafts remaining");
+                Service.ChatManager.PrintMessage("No crafts remaining");
             }
             else
             {
                 var noun = this.craftsRemaining == 1 ? "craft" : "crafts";
-                Service.ChatManager.PrintEcho($"{this.craftsRemaining} {noun} remaining");
+                Service.ChatManager.PrintMessage($"{this.craftsRemaining} {noun} remaining");
             }
         }
 

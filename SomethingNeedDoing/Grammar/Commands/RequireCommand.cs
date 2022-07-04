@@ -70,7 +70,7 @@ internal class RequireCommand : MacroCommand
     {
         PluginLog.Debug($"Executing: {this.Text}");
 
-        bool IsStatusPresent() => CommandInterface.HasStatusId(this.statusIDs);
+        bool IsStatusPresent() => CommandInterface.Instance.HasStatusId(this.statusIDs);
 
         var hasStatus = await this.LinearWait(StatusCheckInterval, this.maxWait, IsStatusPresent, token);
 
