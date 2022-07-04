@@ -5,10 +5,12 @@ using System.Numerics;
 using System.Threading.Tasks;
 
 using Dalamud.Game.ClientState.Keys;
+using Dalamud.Game.Text;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
+using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -509,6 +511,40 @@ internal class HelpWindow : Window
                 }
 
                 DisplayOption("- The CraftLoop /waitaddon \"...\" <maxwait> modifiers have their maximum wait set to this value.");
+            }
+        }
+
+        if (ImGui.CollapsingHeader("Chat"))
+        {
+            var names = Enum.GetNames<XivChatType>();
+            var chatTypes = Enum.GetValues<XivChatType>();
+
+            var current = Array.IndexOf(chatTypes, Service.Configuration.ChatType);
+            if (current == -1)
+            {
+                current = Array.IndexOf(chatTypes, Service.Configuration.ChatType = XivChatType.Echo);
+                Service.Configuration.Save();
+            }
+
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.Combo("Normal chat channel", ref current, names, names.Length))
+            {
+                Service.Configuration.ChatType = chatTypes[current];
+                Service.Configuration.Save();
+            }
+
+            var currentError = Array.IndexOf(chatTypes, Service.Configuration.ErrorChatType);
+            if (currentError == -1)
+            {
+                currentError = Array.IndexOf(chatTypes, Service.Configuration.ErrorChatType = XivChatType.Urgent);
+                Service.Configuration.Save();
+            }
+
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.Combo("Error chat channel", ref currentError, names, names.Length))
+            {
+                Service.Configuration.ChatType = chatTypes[currentError];
+                Service.Configuration.Save();
             }
         }
 

@@ -47,17 +47,10 @@ internal class ChatManager : IDisposable
     /// </summary>
     /// <param name="message">The message to print.</param>
     public void PrintMessage(string message)
-        => Service.ChatGui.Print($"[SND] {message}");
-
-    /// <summary>
-    /// Print a normal message.
-    /// </summary>
-    /// <param name="message">The message to print.</param>
-    public void PrintEcho(string message)
         => Service.ChatGui.PrintChat(new XivChatEntry()
         {
+            Type = Service.Configuration.ChatType,
             Message = $"[SND] {message}",
-            Type = XivChatType.Echo,
         });
 
     /// <summary>
@@ -66,10 +59,15 @@ internal class ChatManager : IDisposable
     /// <param name="message">The message to print.</param>
     /// <param name="color">UiColor value.</param>
     public void PrintColor(string message, UiColor color)
-        => Service.ChatGui.Print(new SeString(
-            new UIForegroundPayload((ushort)color),
-            new TextPayload($"[SND] {message}"),
-            UIForegroundPayload.UIForegroundOff));
+        => Service.ChatGui.PrintChat(
+            new XivChatEntry()
+            {
+                Type = Service.Configuration.ChatType,
+                Message = new SeString(
+                    new UIForegroundPayload((ushort)color),
+                    new TextPayload($"[SND] {message}"),
+                    UIForegroundPayload.UIForegroundOff),
+            });
 
     /// <summary>
     /// Print an error message.
@@ -78,8 +76,8 @@ internal class ChatManager : IDisposable
     public void PrintError(string message)
         => Service.ChatGui.PrintChat(new XivChatEntry()
         {
+            Type = Service.Configuration.ErrorChatType,
             Message = $"[SND] {message}",
-            Type = XivChatType.Urgent,
         });
 
     /// <summary>

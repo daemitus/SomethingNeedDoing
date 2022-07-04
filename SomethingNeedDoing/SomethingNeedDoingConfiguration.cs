@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 
 using Dalamud.Configuration;
+using Dalamud.Game.Text;
 using Newtonsoft.Json;
 
 namespace SomethingNeedDoing;
@@ -107,6 +108,16 @@ public class SomethingNeedDoingConfiguration : IPluginConfiguration
     /// Gets or sets the beep count.
     /// </summary>
     public int BeepCount { get; set; } = 3;
+
+    /// <summary>
+    /// Gets or sets the chat channel to use.
+    /// </summary>
+    public XivChatType ChatType { get; set; } = XivChatType.Debug;
+
+    /// <summary>
+    /// Gets or sets the error chat channel to use.
+    /// </summary>
+    public XivChatType ErrorChatType { get; set; } = XivChatType.Urgent;
 
     /// <summary>
     /// Loads the configuration.
