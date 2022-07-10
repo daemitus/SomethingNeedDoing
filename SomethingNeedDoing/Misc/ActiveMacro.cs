@@ -225,6 +225,7 @@ internal partial class ActiveMacro : IDisposable
         }
 
         this.lua = new Lua();
+        this.lua.State.Encoding = Encoding.UTF8;
         this.lua.LoadCLRPackage();
 
         RegisterClassMethods(this.lua, typeof(CommandInterface));
