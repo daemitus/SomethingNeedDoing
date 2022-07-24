@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
+using Dalamud.Logging;
 using NLua;
 using SomethingNeedDoing.Exceptions;
 using SomethingNeedDoing.Grammar;
@@ -217,18 +218,24 @@ internal partial class ActiveMacro : IDisposable
             .Select(line => $"  {line}")
             .Join('\n');
 
-        static void RegisterClassMethods(Lua lua, Type type)
+        static void RegisterClassMethods(Lua lua, object obj)
         {
+            var type = obj.GetType();
             var isStatic = type.IsAbstract && type.IsSealed;
             var flags = BindingFlags.Public | (isStatic ? BindingFlags.Static : BindingFlags.Instance);
-            type.GetMethods(flags).ToList().ForEach(method => lua.RegisterFunction(method.Name, method));
+            var methods = type.GetMethods(flags);
+            foreach (var method in methods)
+            {
+                PluginLog.Debug($"Adding Lua method: {method.Name}");
+                lua.RegisterFunction(method.Name, obj, method);
+            }
         }
 
         this.lua = new Lua();
         this.lua.State.Encoding = Encoding.UTF8;
         this.lua.LoadCLRPackage();
 
-        RegisterClassMethods(this.lua, typeof(CommandInterface));
+        RegisterClassMethods(this.lua, CommandInterface.Instance);
 
         script = string.Format(EntrypointTemplate, script);
 
