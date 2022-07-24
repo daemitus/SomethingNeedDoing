@@ -169,4 +169,18 @@ public interface ICommandInterface
     /// <param name="nodeNumber">Node number.</param>
     /// <returns>The node text.</returns>
     public string GetNodeText(string addonName, int nodeNumber);
+
+    /// <summary>
+    /// Get the text of a 0-indexed SelectIconString entry.
+    /// </summary>
+    /// <param name="index">Item number, 0 indexed.</param>
+    /// <returns>The item text, or an empty string.</returns>
+    public string GetSelectStringText(int index);
+
+    /// <summary>
+    /// Get the text of a 0-indexed SelectIconString entry.
+    /// </summary>
+    /// <param name="index">Item number, 0 indexed.</param>
+    /// <returns>The item text, or an empty string.</returns>
+    public string GetSelectIconStringText(int index);
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Logging;
@@ -353,6 +354,49 @@ public class CommandInterface : ICommandInterface
 
         var textNode = (AtkTextNode*)node;
         return textNode->NodeText.ToString();
+    }
+
+    /// <inheritdoc/>
+    public unsafe string GetSelectStringText(int index)
+    {
+        var ptr = Service.GameGui.GetAddonByName("SelectString", 1);
+        if (ptr == IntPtr.Zero)
+            throw new MacroCommandError("Could not find SelectString addon");
+
+        var addon = (AddonSelectString*)ptr;
+        var popup = &addon->PopupMenu.PopupMenu;
+
+        var count = popup->EntryCount;
+        PluginLog.Debug($"index={index} // Count={count} // {index < 0 || index > count}");
+        if (index < 0 || index > count)
+            throw new MacroCommandError("Index out of range");
+
+        var textPtr = popup->EntryNames[index];
+        if (textPtr == null)
+            throw new MacroCommandError("Text pointer was null");
+
+        return Marshal.PtrToStringUTF8((IntPtr)textPtr) ?? string.Empty;
+    }
+
+    /// <inheritdoc/>
+    public unsafe string GetSelectIconStringText(int index)
+    {
+        var ptr = Service.GameGui.GetAddonByName("SelectIconString", 1);
+        if (ptr == IntPtr.Zero)
+            throw new MacroCommandError("Could not find SelectIconString addon");
+
+        var addon = (AddonSelectIconString*)ptr;
+        var popup = &addon->PopupMenu.PopupMenu;
+
+        var count = popup->EntryCount;
+        if (index < 0 || index > count)
+            throw new MacroCommandError("Index out of range");
+
+        var textPtr = popup->EntryNames[index];
+        if (textPtr == null)
+            throw new MacroCommandError("Text pointer was null");
+
+        return Marshal.PtrToStringUTF8((IntPtr)textPtr) ?? string.Empty;
     }
 
     private unsafe int GetNodeTextAsInt(AtkTextNode* node, string error)
