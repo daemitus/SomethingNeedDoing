@@ -278,6 +278,11 @@ internal class HelpWindow : Window
         ImGui.PushFont(UiBuilder.MonoFont);
 
         DisplayChangelog(
+            "2022-07-23",
+            "- Fixed Lua methods (oops).\n" +
+            "- Add Lua methods to get SelectString and SelectIconString text.\n");
+
+        DisplayChangelog(
             "2022-06-10",
             "- Updated the Send command to allow for '+' delimited modifiers.\n" +
             "- Added a CraftLoop template feature to allow for customization of the loop capability.\n" +
