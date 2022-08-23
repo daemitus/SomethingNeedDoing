@@ -10,7 +10,6 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
-using SomethingNeedDoing.Misc;
 
 namespace SomethingNeedDoing.Interface;
 
@@ -276,6 +275,11 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+            "2022-08-22",
+            "- Added use item command.\n" +
+            "- Updated Lua method GetNodeText to get nested nodes.\n");
 
         DisplayChangelog(
             "2022-07-23",
@@ -717,10 +721,13 @@ bool HasMaxProgress()
 int GetQuality()
 int GetMaxQuality()
 bool HasMaxQuality()
+
 int GetDurability()
 int GetMaxDurability()
+
 int GetCp()
 int GetMaxCp()
+
 int GetStep()
 int GetPercentHQ()
 bool NeedsRepair()
@@ -735,6 +742,12 @@ bool HasStatus(string name)
 
 // id: status effect id(s).
 bool HasStatusId(uint id, ...)
+
+IsAddonVisible(string addonName)
+IsAddonReady(string addonName)
+
+// Can fetch nested nodes
+GetNodeText(string addonName, int nodeNumber, ...)
 ".Trim();
 
         ImGui.TextWrapped(text);

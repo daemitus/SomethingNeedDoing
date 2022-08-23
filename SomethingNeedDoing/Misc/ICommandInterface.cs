@@ -166,9 +166,9 @@ public interface ICommandInterface
     /// In general, these numbers do not change.
     /// </summary>
     /// <param name="addonName">Addon name.</param>
-    /// <param name="nodeNumber">Node number.</param>
+    /// <param name="nodeNumbers">Node numbers, can fetch nested nodes.</param>
     /// <returns>The node text.</returns>
-    public string GetNodeText(string addonName, int nodeNumber);
+    public string GetNodeText(string addonName, params int[] nodeNumbers);
 
     /// <summary>
     /// Get the text of a 0-indexed SelectIconString entry.

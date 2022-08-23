@@ -330,27 +330,50 @@ public class CommandInterface : ICommandInterface
             return false;
 
         var addon = (AtkUnitBase*)ptr;
-        return addon->UldManager.LoadedState == 3;
+        return addon->UldManager.LoadedState == AtkLoadState.Loaded;
     }
 
     /// <inheritdoc/>
-    public unsafe string GetNodeText(string addonName, int nodeNumber)
+    public unsafe string GetNodeText(string addonName, params int[] nodeNumbers)
     {
+        if (nodeNumbers.Length == 0)
+            throw new MacroCommandError("At least one node number is required");
+
         var ptr = Service.GameGui.GetAddonByName(addonName, 1);
         if (ptr == IntPtr.Zero)
             throw new MacroCommandError($"Could not find {addonName} addon");
 
         var addon = (AtkUnitBase*)ptr;
-        var count = addon->UldManager.NodeListCount;
-        if (nodeNumber < 0 || nodeNumber >= count)
-            throw new MacroCommandError($"Addon node number must be between 0 and {count} for the {addonName} addon");
+        var uld = addon->UldManager;
 
-        AtkResNode* node = addon->UldManager.NodeList[nodeNumber];
-        if (node == null)
-            throw new MacroCommandError($"{addonName} addon node[{nodeNumber}] is null");
+        AtkResNode* node = null;
+        var debugString = string.Empty;
+        for (var i = 0; i < nodeNumbers.Length; i++)
+        {
+            var nodeNumber = nodeNumbers[i];
+
+            var count = uld.NodeListCount;
+            if (nodeNumber < 0 || nodeNumber >= count)
+                throw new MacroCommandError($"Addon node number must be between 0 and {count} for the {addonName} addon");
+
+            node = uld.NodeList[nodeNumber];
+            debugString += $"[{nodeNumber}]";
+
+            if (node == null)
+                throw new MacroCommandError($"{addonName} addon node{debugString} is null");
+
+            // More nodes to traverse
+            if (i < nodeNumbers.Length - 1)
+            {
+                if ((int)node->Type < 1000)
+                    throw new MacroCommandError($"{addonName} addon node{debugString} is not a component");
+
+                uld = ((AtkComponentNode*)node)->Component->UldManager;
+            }
+        }
 
         if (node->Type != NodeType.Text)
-            throw new MacroCommandError($"{addonName} addon node[{nodeNumber}] is not a text node");
+            throw new MacroCommandError($"{addonName} addon node{debugString} is not a text node");
 
         var textNode = (AtkTextNode*)node;
         return textNode->NodeText.ToString();

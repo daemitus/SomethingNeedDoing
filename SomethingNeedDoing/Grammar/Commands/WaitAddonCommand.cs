@@ -82,7 +82,7 @@ internal class WaitAddonCommand : MacroCommand
             return (addonPtr, false);
 
         var addon = (AtkUnitBase*)addonPtr;
-        if (!addon->IsVisible || addon->UldManager.LoadedState != 3)
+        if (!addon->IsVisible || addon->UldManager.LoadedState != AtkLoadState.Loaded)
             return (addonPtr, false);
 
         return (addonPtr, true);
