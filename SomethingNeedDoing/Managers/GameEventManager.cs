@@ -5,7 +5,6 @@ using Dalamud.Hooking;
 using Dalamud.Logging;
 using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Lumina.Excel.GeneratedSheets;
 using SomethingNeedDoing.CraftingData;
 
 namespace SomethingNeedDoing.Managers;
