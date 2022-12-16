@@ -50,7 +50,7 @@ internal class SendCommand : MacroCommand
         var vkCodes = nameValue.Split("+")
             .Select(name =>
             {
-                if (!Enum.TryParse<VirtualKey>(nameValue, true, out var vkCode))
+                if (!Enum.TryParse<VirtualKey>(name, true, out var vkCode))
                     throw new MacroCommandError("Invalid virtual key");
 
                 return vkCode;
