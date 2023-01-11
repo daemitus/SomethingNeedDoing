@@ -1,5 +1,6 @@
 using System.Linq;
 
+using ClickLib;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
@@ -27,7 +28,7 @@ namespace SomethingNeedDoing
         {
             pluginInterface.Create<Service>();
 
-            ClickLib.Click.Initialize();
+            Click.Initialize();
 
             Service.Plugin = this;
             Service.Configuration = SomethingNeedDoingConfiguration.Load(pluginInterface.ConfigDirectory);

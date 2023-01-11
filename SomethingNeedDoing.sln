@@ -16,13 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs", "lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj", "{5A15C40C-A15F-4E92-88E7-8F0323AAB284}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "lib\ClickLib\ClickLib\ClickLib.csproj", "{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{5D8E6609-92F8-4F85-9351-EDC655B009CE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs.InteropSourceGenerators", "lib\FFXIVClientStructs\FFXIVClientStructs.InteropSourceGenerators\FFXIVClientStructs.InteropSourceGenerators.csproj", "{5EC85F89-5B15-494E-B9E0-5F7400FE295F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,14 +34,6 @@ Global
 		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Release|Any CPU.Build.0 = Release|x64
 		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Release|x64.ActiveCfg = Release|x64
 		{7A28CFC7-5A98-41AD-8129-D835AEE9645A}.Release|x64.Build.0 = Release|x64
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Debug|x64.Build.0 = Debug|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|x64.ActiveCfg = Release|Any CPU
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284}.Release|x64.Build.0 = Release|Any CPU
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Debug|Any CPU.Build.0 = Debug|x64
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Debug|x64.ActiveCfg = Debug|x64
@@ -56,22 +42,9 @@ Global
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Release|Any CPU.Build.0 = Release|x64
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Release|x64.ActiveCfg = Release|x64
 		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA}.Release|x64.Build.0 = Release|x64
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Debug|x64.Build.0 = Debug|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Release|x64.ActiveCfg = Release|Any CPU
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{5A15C40C-A15F-4E92-88E7-8F0323AAB284} = {5D8E6609-92F8-4F85-9351-EDC655B009CE}
-		{CE149D6E-C8A4-48FB-B17B-A7E426AF9BDA} = {5D8E6609-92F8-4F85-9351-EDC655B009CE}
-		{5EC85F89-5B15-494E-B9E0-5F7400FE295F} = {5D8E6609-92F8-4F85-9351-EDC655B009CE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {34F52F54-8900-418B-9073-30B67BB11314}
