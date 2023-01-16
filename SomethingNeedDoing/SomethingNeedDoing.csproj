@@ -56,8 +56,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <ProjectReference Include="..\lib\ClickLib\ClickLib\ClickLib.csproj" />
+    <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
     <Reference Include="Dalamud" Private="False" />
-    <Reference Include="FFXIVClientStructs" Private="False" />
+    <!--<Reference Include="FFXIVClientStructs" Private="False" />-->
     <Reference Include="ImGui.NET" Private="False" />
     <Reference Include="Lumina" Private="False" />
     <Reference Include="Lumina.Excel" Private="False" />
