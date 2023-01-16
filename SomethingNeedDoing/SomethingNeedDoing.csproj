@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>daemitus</Authors>
     <Company>-</Company>
-    <Version>1.4.0.2</Version>
+    <Version>1.4.0.3</Version>
     <Description></Description>
     <Copyright></Copyright>
     <PackageProjectUrl>https://github.com/daemitus/SomethingNeedDoing</PackageProjectUrl>
@@ -55,14 +55,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <ProjectReference Include="..\lib\ClickLib\ClickLib\ClickLib.csproj" />
-    <ProjectReference Include="..\lib\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
     <Reference Include="Dalamud" Private="False" />
-    <!--<Reference Include="FFXIVClientStructs" Private="False" />-->
+    <Reference Include="FFXIVClientStructs" Private="False" />
     <Reference Include="ImGui.NET" Private="False" />
     <Reference Include="Lumina" Private="False" />
     <Reference Include="Lumina.Excel" Private="False" />
     <Reference Include="Newtonsoft.Json" Private="False" />
+    <ProjectReference Include="..\lib\ClickLib\ClickLib\ClickLib.csproj" />
   </ItemGroup>
 
   <Target Name="ILRepack" AfterTargets="Build">
