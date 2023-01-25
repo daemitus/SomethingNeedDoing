@@ -114,8 +114,9 @@ public interface ICommandInterface
     /// <summary>
     /// Gets a value indicating whether any of the player's worn equipment is broken.
     /// </summary>
+    /// <param name="below">Return true if the gear durability is less than or eqal to this number.</param>
     /// <returns>A value indicating whether any of the player's worn equipment is broken.</returns>
-    public bool NeedsRepair();
+    public bool NeedsRepair(float below = 0);
 
     /// <summary>
     /// Gets a value indicating whether any of the player's worn equipment can have materia extracted.

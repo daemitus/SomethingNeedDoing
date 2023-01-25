@@ -158,7 +158,7 @@ public class CommandInterface : ICommandInterface
     }
 
     /// <inheritdoc/>
-    public unsafe bool NeedsRepair()
+    public unsafe bool NeedsRepair(float below = 0)
     {
         var im = InventoryManager.Instance();
         if (im == null)
@@ -186,7 +186,9 @@ public class CommandInterface : ICommandInterface
             if (item == null)
                 continue;
 
-            if (item->Condition == 0)
+            var itemCondition = Convert.ToInt32(Convert.ToDouble(item->Condition) / 30000.0 * 100.0);
+
+            if (itemCondition <= below)
                 return true;
         }
 
