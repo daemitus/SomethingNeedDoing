@@ -106,6 +106,15 @@ internal class HelpWindow : Window
                 "/requirestats 2700 2600 500",
             }),
         (
+            "item", null,
+            "Use an item, stopping the macro if the item is not present.",
+            new[] { "hq", "wait" },
+            new[]
+            {
+                "/item Calamari Ripieni",
+                "/item Calamari Ripieni <hq> <wait.3>",
+            }),
+        (
             "runmacro", null,
             "Start a macro from within another macro.",
             new[] { "wait" },
