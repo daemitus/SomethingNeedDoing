@@ -25,7 +25,7 @@ internal abstract class MacroCommand
         : this(text, waitMod.Wait, waitMod.Until)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MacroCommand"/> class.
     /// </summary>
@@ -36,7 +36,7 @@ internal abstract class MacroCommand
         : this(text, waitMod.Wait, waitMod.Until, indexMod.ObjectId)
     {
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MacroCommand"/> class.
     /// </summary>
@@ -49,7 +49,7 @@ internal abstract class MacroCommand
         this.Wait = wait;
         this.WaitUntil = until;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="MacroCommand"/> class.
     /// </summary>
@@ -64,7 +64,7 @@ internal abstract class MacroCommand
         this.WaitUntil = until;
         this.ObjectIndex = index;
     }
-    
+
     /// <summary>
     /// Gets the original line text.
     /// </summary>
@@ -79,7 +79,7 @@ internal abstract class MacroCommand
     /// Gets the milliseconds to wait until.
     /// </summary>
     public int WaitUntil { get; }
-    
+
     /// <summary>
     /// Gets the object index.
     /// </summary>
