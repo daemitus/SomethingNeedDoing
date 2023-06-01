@@ -18,6 +18,7 @@ internal class TargetCommand : MacroCommand
     private static readonly Regex Regex = new(@"^/target\s+(?<name>.*?)\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     private readonly string targetName;
+    private readonly int targetIndex;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TargetCommand"/> class.
@@ -25,9 +26,11 @@ internal class TargetCommand : MacroCommand
     /// <param name="text">Original text.</param>
     /// <param name="targetName">Target name.</param>
     /// <param name="wait">Wait value.</param>
-    private TargetCommand(string text, string targetName, WaitModifier wait)
-        : base(text, wait)
+    /// <param name="index">Object index.</param>
+    private TargetCommand(string text, string targetName, WaitModifier wait, IndexModifier index)
+        : base(text, wait, index)
     {
+        this.targetIndex = index.ObjectId;
         this.targetName = targetName.ToLowerInvariant();
     }
 
@@ -39,22 +42,22 @@ internal class TargetCommand : MacroCommand
     public static TargetCommand Parse(string text)
     {
         _ = WaitModifier.TryParse(ref text, out var waitModifier);
-
+        _ = IndexModifier.TryParse(ref text, out var indexModifier);
         var match = Regex.Match(text);
         if (!match.Success)
             throw new MacroSyntaxError(text);
 
         var nameValue = ExtractAndUnquote(match, "name");
-
-        return new TargetCommand(text, nameValue, waitModifier);
+        return new TargetCommand(text, nameValue, waitModifier, indexModifier);
     }
 
     /// <inheritdoc/>
-    public async override Task Execute(ActiveMacro macro, CancellationToken token)
+    public override async Task Execute(ActiveMacro macro, CancellationToken token)
     {
-        PluginLog.Debug($"Executing: {this.Text}");
+        PluginLog.Debug($"Executing: {this.targetIndex}");
 
-        var target = Service.ObjectTable.FirstOrDefault(obj => obj.Name.TextValue.ToLowerInvariant() == this.targetName);
+        var target = Service.ObjectTable.FirstOrDefault(obj => obj.Name.TextValue.ToLowerInvariant() == this.targetName &&
+                                                               (this.targetIndex <= 0 || obj.ObjectIndex == this.targetIndex));
 
         if (target == default)
             throw new MacroCommandError("Could not find target");
