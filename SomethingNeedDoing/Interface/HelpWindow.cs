@@ -135,7 +135,7 @@ internal class HelpWindow : Window
         (
             "target", null,
             "Target anyone and anything that can be selected.",
-            new[] { "wait" },
+            new[] { "wait", "index" },
             new[]
             {
                 "/target Eirikur",
@@ -201,6 +201,13 @@ internal class HelpWindow : Window
             new[]
             {
                 "/loop 5 <echo>",
+            }),
+        (
+            "index",
+            "For supported commands, specify the index. For example, when there are multiple targets with the same name.",
+            new[]
+            {
+                "/target abc <index.5>",
             }),
     };
 
@@ -284,6 +291,10 @@ internal class HelpWindow : Window
         }
 
         ImGui.PushFont(UiBuilder.MonoFont);
+
+        DisplayChangelog(
+            "2023-05-31",
+            "- Added the index modifier\n");
 
         DisplayChangelog(
             "2022-08-22",
