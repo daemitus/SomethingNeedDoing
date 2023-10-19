@@ -1,5 +1,10 @@
 ## Something Need Doing
 
+### Update as of 2023/10/18 - Asriel has volunteered to takeover SomethingNeedDoing. Please update your repo url to the one found below.
+https://raw.githubusercontent.com/WorkingRobot/MyDalamudPlugins/main/plogon.json 
+
+Post your issues here: https://github.com/WorkingRobot/SomethingNeedDoing
+
 This plugin gives you control of a little Orc peon that does things for you. 
 Specifically, crafting. 
 It's a better way of storing and running all your different macros.
