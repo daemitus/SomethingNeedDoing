@@ -1,9 +1,15 @@
 ## Something Need Doing
 
-### Update as of 2023/10/18 - Asriel has volunteered to takeover SomethingNeedDoing. Please update your repo url to the one found below.
-https://raw.githubusercontent.com/WorkingRobot/MyDalamudPlugins/main/plogon.json 
+### Update as of 2024/01/26 - Croizat has expanded upon SND over at puni.sh. They're good people :)
 
-Post your issues here: https://github.com/WorkingRobot/SomethingNeedDoing
+Repo URL: https://puni.sh/api/repository/croizat
+
+GitHub: https://github.com/Jaksuhn/SomethingNeedDoing
+
+### Update as of 2023/10/18 - Asriel has volunteered to takeover SomethingNeedDoing.
+Repo URL: https://raw.githubusercontent.com/WorkingRobot/MyDalamudPlugins/main/plogon.json 
+
+GitHub: https://github.com/WorkingRobot/SomethingNeedDoing
 
 This plugin gives you control of a little Orc peon that does things for you. 
 Specifically, crafting. 
